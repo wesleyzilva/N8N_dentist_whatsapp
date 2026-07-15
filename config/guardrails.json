@@ -1,0 +1,39 @@
+{
+  "default_intent": "UNKNOWN",
+  "guardrails": {
+    "tone": "humano, empático e claro",
+    "avoid": [
+      "mensagens longas",
+      "tom agressivo",
+      "pressão indevida"
+    ],
+    "required_words": [
+      "consulta",
+      "agendamento",
+      "confirmação"
+    ],
+    "fallback_message": "Olá! Estou aqui para ajudar com sua consulta. Se precisar, responda com confirmação, reagendamento ou cancelamento."
+  },
+  "intent_examples": {
+    "CONFIRM": [
+      "Vou confirmar minha consulta",
+      "Sim, estarei presente"
+    ],
+    "RESCHEDULE": [
+      "Preciso reagendar para outro dia",
+      "Quero trocar de horário"
+    ],
+    "CANCEL": [
+      "Quero cancelar",
+      "Não vou comparecer"
+    ],
+    "QUESTION": [
+      "Tenho uma dúvida",
+      "Como funciona a consulta?"
+    ],
+    "UNKNOWN": [
+      "Olá",
+      "Não sei responder"
+    ]
+  }
+}

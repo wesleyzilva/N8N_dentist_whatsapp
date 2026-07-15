@@ -1,0 +1,16 @@
+{
+  "delivery_name": "exemplo",
+  "acceptance_criteria": [
+    "A entrega funciona em ambiente local",
+    "A configuração pode ser ajustada sem alterar o código",
+    "Há um teste automatizado ou validação manual documentada",
+    "O resultado é observável e mensurável"
+  ],
+  "test_steps": [
+    "Executar o componente ou fluxo localmente",
+    "Validar entrada e saída esperadas",
+    "Verificar se os guardrails foram respeitados",
+    "Registrar o resultado em um log simples"
+  ],
+  "success_signal": "Entrega com comportamento previsível e sem regressão evidente"
+}
