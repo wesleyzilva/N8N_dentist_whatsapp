@@ -1,6 +1,13 @@
 # N8N Dental WhatsApp Automation
 
-A self-hosted agentic workflow for dental appointment confirmation and patient follow-up. The project combines n8n, a lightweight Python intent-classification service, and Docker to support conversational appointment handling through WhatsApp and related integrations.
+<p align="center">
+  <img src="https://img.shields.io/badge/n8n-Workflow%20Automation-00A4F4?style=for-the-badge&logo=n8n&logoColor=white" />
+  <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
+  <img src="https://img.shields.io/badge/WhatsApp-Integration-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" />
+</p>
+
+A self-hosted agentic workflow for dental appointment confirmation and patient follow-up. This project combines n8n, a lightweight Python intent-classification service, and Docker to support conversational appointment handling through WhatsApp and related integrations.
 
 ## Overview
 
@@ -11,20 +18,20 @@ Dental clinics often face revenue loss from no-shows, missed confirmations, and 
 - classifying intent as CONFIRM, RESCHEDULE, CANCEL, QUESTION, or UNKNOWN
 - routing the interaction to the next appropriate workflow step
 
-The design is intentionally modular so it can also serve as a reusable template for OpenClaw-style automation projects.
+The design is intentionally modular and can also serve as a reusable template for OpenClaw-style automation projects.
 
-## Key Features
+## What This Project Includes
 
-- Webhook-driven inbound message handling
-- Intent classification with configurable guardrails
-- Local-first development with Docker Compose
+- webhook-driven inbound message handling
+- intent classification with configurable guardrails
+- local-first development with Docker Compose
 - n8n-based orchestration for low-code workflows
-- Testable domain logic and validation scripts
-- Clear separation between domain, infrastructure, and interface layers
+- testable domain logic and validation scripts
+- a clear separation between domain, infrastructure, and interface layers
 
-## Architecture
+## Architecture at a Glance
 
-The solution is structured around three main layers:
+The solution is organized into three main layers:
 
 - Domain layer: business logic for intent classification and workflow rules
 - Infrastructure layer: configuration loading, persistence, and environment handling
@@ -36,7 +43,7 @@ The solution is structured around three main layers:
 - Python service: intent classification endpoint
 - PostgreSQL: local persistence for n8n data
 - Docker Compose: local environment startup
-- Optional integrations: Google Calendar, WhatsApp providers, and LLM services
+- optional integrations: Google Calendar, WhatsApp providers, and LLM services
 
 ## Repository Structure
 
@@ -51,9 +58,9 @@ The solution is structured around three main layers:
 ## Prerequisites
 
 - Docker Desktop and Docker Compose
-- Python 3.10+ (for the local classifier service)
+- Python 3.10+
 - Git
-- Optional: Google Cloud project and WhatsApp provider credentials for full production integration
+- optional: Google Cloud project and WhatsApp provider credentials for full production integration
 
 ## Quick Start
 
@@ -114,12 +121,16 @@ Run them with:
 pytest
 ```
 
+## Safety and Governance
+
+When a decision could create clinical, legal, or financial risk, AI should not make the final decision on its own. It should gather the relevant information, structure the context clearly, and route the case to the responsible human or operational process.
+
 ## Roadmap
 
-- Improve workflow branching for confirm, reschedule, cancel, and question paths
-- Add stronger webhook validation and error handling
-- Integrate Google Calendar updates and WhatsApp provider actions
-- Expand the project into a reusable OpenClaw-style automation template
+- improve workflow branching for confirm, reschedule, cancel, and question paths
+- add stronger webhook validation and error handling
+- integrate Google Calendar updates and WhatsApp provider actions
+- expand the project into a reusable OpenClaw-style automation template
 
 ## License
 
