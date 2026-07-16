@@ -33,7 +33,7 @@ catch {
 }
 
 Write-Host "[2/4] Executando testes automáticos..." -ForegroundColor Cyan
-pytest -q tests/test_classify_intent.py tests/test_guardrails_config.py
+python -m pytest -q tests/test_classify_intent.py tests/test_guardrails_config.py tests/test_project_structure.py
 
 Write-Host "[3/4] Testando classificação via serviço HTTP..." -ForegroundColor Cyan
 $payload = @{ message = $Message }

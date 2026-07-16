@@ -1,25 +1,22 @@
 {
-  "name": "Dentist WhatsApp Intent Workflow",
+  "name": "Dentist WhatsApp Intent Workflow (Simple)",
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "intent-webhook",
+        "path": "intent-webhook-simple",
         "responseMode": "lastNode",
         "options": {}
       },
-      "id": "webhook-node",
+      "id": "webhook-node-simple",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        300,
-        300
-      ]
+      "position": [300, 300]
     },
     {
       "parameters": {
-        "url": "http://host.docker.internal:8001/classify/",
+        "url": "http://host.docker.internal:8001/classify",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -31,31 +28,25 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"message\": $json.body.message}",
+        "jsonBody": "{\"message\": \"Vou confirmar minha consulta\"}",
         "options": {}
       },
-      "id": "http-request-node",
+      "id": "http-request-node-simple",
       "name": "Classify Intent",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        600,
-        300
-      ]
+      "position": [600, 300]
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const payload = $json;\nconst intent = payload.intent || 'UNKNOWN';\nconst confidence = payload.confidence || 'medium';\nreturn [{ json: { intent, confidence } }];"
+        "jsCode": "return [{ json: { ok: true } }];"
       },
-      "id": "set-node",
-      "name": "Set Intent Output",
+      "id": "set-node-simple",
+      "name": "Set Response",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.3,
-      "position": [
-        900,
-        300
-      ]
+      "position": [900, 300]
     }
   ],
   "connections": {
@@ -74,7 +65,7 @@
       "main": [
         [
           {
-            "node": "Set Intent Output",
+            "node": "Set Response",
             "type": "main",
             "index": 0
           }
@@ -86,5 +77,5 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "1"
+  "versionId": "2"
 }

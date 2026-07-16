@@ -7,14 +7,14 @@ from app.domains.appointments.intent_classifier import classify_intent
 
 class IntentRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path == "/healthz":
+        if self.path in {"/healthz", "/"}:
             self._send_json(200, {"status": "ok"})
             return
 
         self._send_json(404, {"error": "not found"})
 
     def do_POST(self):
-        if self.path != "/classify":
+        if self.path not in {"/classify", "/classify/"}:
             self._send_json(404, {"error": "not found"})
             return
 
