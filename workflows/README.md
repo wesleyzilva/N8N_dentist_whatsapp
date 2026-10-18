@@ -1,12 +1,21 @@
 # Workflows n8n
 
-Este diretório armazena os fluxos base para integração com o serviço de intenção.
+Orquestração do canal. Regras de unidade, agenda e tom ficam no Python (`POST /turn`).
 
-## Fluxo disponível
-- intent_workflow.json: webhook de entrada + chamada ao serviço de classificação + saída normalizada.
+## Fluxos
+- `intent_workflow.json`: webhook `intent-webhook` → `http://host.docker.internal:8001/turn` → `reply_text` grounded.
+- `intent_workflow_simple.json`: o mesmo contrato, payload fixo para smoke test.
+
+Payload esperado no webhook:
+
+```json
+{ "message": "Vou confirmar minha consulta", "from": "5546999887766" }
+```
+
+Se `can_assert_facts` for false, o nó `Grounded Reply` marca `next` como `ask` ou `handoff`. Não colocar horário no canvas.
 
 ## Como importar
 1. Abra o n8n.
 2. Vá para Workflows > Import from JSON.
-3. Selecione o arquivo intent_workflow.json.
-4. Ative o workflow após revisar as configurações.
+3. Selecione `intent_workflow.json`.
+4. Suba `python intent_service.py` (porta 8001) antes de ativar.

@@ -1,0 +1,12 @@
+---
+description: Workflows n8n só orquestram
+globs: workflows/**
+alwaysApply: false
+---
+
+# n8n
+
+- Não colocar DDD, calendário ou tom de voz hardcoded no canvas.
+- Chamar o serviço Python / MCP e ramificar pelo JSON de evidência.
+- Se `can_assert_facts` for false, ir para pergunta ou handoff.
+- Versionar JSON em `workflows/` e documentar o path do webhook.

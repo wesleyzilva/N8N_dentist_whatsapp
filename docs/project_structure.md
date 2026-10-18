@@ -7,26 +7,21 @@ Organizar o projeto por domínio de negócio, infraestrutura e interfaces para m
 ## Estrutura
 
 ```text
-app/
-  domains/
-    appointments/
-      intent_classifier.py
-  infrastructure/
-    config/
-      config_loader.py
-  interfaces/
-    http/
-      intent_service.py
-config/
-  guardrails.json
-scripts/
-  validate_local_flow.ps1
-  classify_intent.py
+AGENTS.md
+ARCHITECTURE.md
+IMPLEMENTATION_PLAN.md
+.cursor/rules/          # governança Cursor
+.cursor/skills/         # tpm, architect, dev, qa, voice, security, devops
+app/domains/            # intent, location, grounding
+app/infrastructure/     # config + contratos MCP
+app/interfaces/http/
+config/clinic.json      # DDD 46 / 16
+config/guardrails.json
+docs/canonical/
+docs/governance/
+mcp/schemas/
 tests/
-  test_classify_intent.py
-  test_guardrails_config.py
 workflows/
-  intent_workflow.json
 ```
 
 ## Como usar

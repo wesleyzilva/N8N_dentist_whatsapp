@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "google-calendar",
+  "tools": {
+    "freebusy": {
+      "description": "Slots livres no calendário da unidade. Lista vazia = sem evidência, não inventar.",
+      "arguments": {
+        "type": "object",
+        "required": ["calendar_id", "time_min", "time_max"],
+        "properties": {
+          "calendar_id": { "type": "string" },
+          "time_min": { "type": "string", "format": "date-time" },
+          "time_max": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "presence": {
+      "description": "Cidade da dra agora, só se houver evento/bloco de evidência.",
+      "arguments": {
+        "type": "object",
+        "required": ["at"],
+        "properties": {
+          "at": { "type": "string", "format": "date-time" },
+          "calendar_id": { "type": "string" }
+        }
+      },
+      "returns": {
+        "type": "object",
+        "required": ["city", "evidence"],
+        "properties": {
+          "city": { "type": ["string", "null"] },
+          "evidence": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "create_event": {
+      "description": "Fase 4. Exige confirmation_token do paciente.",
+      "arguments": {
+        "type": "object",
+        "required": ["calendar_id", "start", "end", "confirmation_token"]
+      }
+    }
+  }
+}

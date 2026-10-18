@@ -1,0 +1,34 @@
+{
+  "practice": {
+    "specialty": "harmonizacao-orofacial",
+    "label": "harmonização orofacial",
+    "not": "consultorio odontologico geral"
+  },
+  "timezone": "America/Sao_Paulo",
+  "operation_hours": {
+    "start": "08:00",
+    "end": "20:00",
+    "days": ["mon", "tue", "wed", "thu", "fri", "sat"]
+  },
+  "unknown_policy": "never_guess_ask_or_escalate",
+  "units": [
+    {
+      "id": "pato-branco",
+      "city": "Pato Branco",
+      "state": "PR",
+      "ddd": "46",
+      "aliases": ["pato branco", "pb", "pato-branco"],
+      "google_calendar_id": "REPLACE_CALENDAR_PATO_BRANCO",
+      "address": "TO_BE_CONFIRMED"
+    },
+    {
+      "id": "sao-carlos",
+      "city": "São Carlos",
+      "state": "SP",
+      "ddd": "16",
+      "aliases": ["sao carlos", "são carlos", "sanca", "sao-carlos"],
+      "google_calendar_id": "REPLACE_CALENDAR_SAO_CARLOS",
+      "address": "TO_BE_CONFIRMED"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+# Stack local: PostgreSQL + n8n para o sistema de gestão da clínica
+# Uso: copie .env.example para .env, preencha e rode `docker compose up -d`
+
+name: dentist_whatsapp
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: dentist_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-n8n}
+      TZ: America/Sao_Paulo
+    ports:
+      # Exposto só na própria máquina (dados de saúde: não abrir para a rede)
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Scripts rodam só na PRIMEIRA criação do volume (banco vazio)
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB:-n8n}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - clinica_net
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest # dica: fixe na versão que você já usa
+    container_name: dentist_n8n
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "5678:5678"
+    environment:
+      # Banco interno do n8n (workflows, execuções, credenciais)
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: ${POSTGRES_DB:-n8n}
+      DB_POSTGRESDB_USER: ${POSTGRES_USER}
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+      # Se já existe um n8n com credenciais salvas, use a MESMA chave dele
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      N8N_HOST: ${N8N_HOST:-localhost}
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      WEBHOOK_URL: ${WEBHOOK_URL:-http://localhost:5678/}
+      GENERIC_TIMEZONE: America/Sao_Paulo
+      TZ: America/Sao_Paulo
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - clinica_net
+
+volumes:
+  postgres_data:
+  n8n_data:
+  # Para reaproveitar os volumes dos containers atuais, troque por:
+  # postgres_data:
+  #   external: true
+  #   name: NOME_DO_VOLUME_EXISTENTE
+
+networks:
+  clinica_net:

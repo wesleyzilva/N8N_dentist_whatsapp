@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "whatsapp",
+  "tools": {
+    "send_text": {
+      "description": "Envia texto já grounded. Não gera conteúdo.",
+      "arguments": {
+        "type": "object",
+        "required": ["to", "body"],
+        "properties": {
+          "to": { "type": "string" },
+          "body": { "type": "string", "maxLength": 900 }
+        }
+      }
+    },
+    "handoff": {
+      "description": "Escala para humana com resumo factual (sem claims bloqueadas).",
+      "arguments": {
+        "type": "object",
+        "required": ["to_internal", "reason", "context"]
+      }
+    }
+  }
+}

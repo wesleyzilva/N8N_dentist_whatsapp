@@ -1,0 +1,18 @@
+{
+  "templates": {
+    "CONFIRM": "Perfeito, anotei a confirmação do seu atendimento. Se precisar mudar, é só me chamar.",
+    "RESCHEDULE": "Claro, vamos remarcar. Me conta um período que funciona pra você que eu confirmo na agenda da unidade.",
+    "CANCEL": "Tudo bem, vou registrar o cancelamento. Quando quiser remarcar, estou por aqui.",
+    "QUESTION": "Posso te ajudar com agendamento, confirmação e horários da harmonização orofacial. O que você precisa saber?",
+    "UNKNOWN": "Olá! Posso te ajudar com o atendimento de harmonização orofacial. Se quiser, me diz se é para confirmar, reagendar, cancelar ou ver horário — e em qual cidade (Pato Branco ou São Carlos).",
+    "ask_unit": "Você prefere Pato Branco ou São Carlos?",
+    "ask_unit_hypothesis": "Pelo seu número, imagino {city}. É nessa unidade mesmo?",
+    "ask_availability": "Vou olhar a agenda da unidade e já te retorno com horários reais, combinado?",
+    "ask_presence": "Deixa eu confirmar na agenda em qual cidade a dra está agora — te falo com certeza, sem chute.",
+    "clinical_escalate": "Sinto muito que você esteja passando por isso. Vou encaminhar agora para a equipe, que é o caminho mais seguro.",
+    "presence_known": "Pela agenda, a dra está em {city} agora.",
+    "tenho_horarios": "Na agenda da unidade encontrei: {slots}.",
+    "unit_confirmed": "Combinado, {city}. Posso te ajudar a confirmar, remarcar, cancelar ou ver horário.",
+    "opt_out": "Tudo bem, não te envio mais mensagens. Se mudar de ideia, é só chamar."
+  }
+}

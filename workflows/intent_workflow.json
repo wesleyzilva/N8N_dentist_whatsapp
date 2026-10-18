@@ -1,4 +1,5 @@
 {
+  "id": "j9ZLd2huqjyrghXf",
   "name": "Dentist WhatsApp Intent Workflow",
   "nodes": [
     {
@@ -8,18 +9,17 @@
         "responseMode": "lastNode",
         "options": {}
       },
-      "id": "webhook-node",
+      "id": "f17e57f3-31b7-445f-ace9-fcaaeabba118",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [
-        300,
-        300
-      ]
+      "position": [300, 300],
+      "webhookId": "030caabc-8949-4ba5-b67d-d361d492fa08"
     },
     {
       "parameters": {
-        "url": "http://host.docker.internal:8001/classify/",
+        "method": "POST",
+        "url": "http://host.docker.internal:8001/turn",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -31,31 +31,25 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"message\": $json.body.message}",
+        "jsonBody": "={{ JSON.stringify({ message: $json.body.message, whatsapp_number: $json.body.from || $json.body.whatsapp_number }) }}",
         "options": {}
       },
       "id": "http-request-node",
-      "name": "Classify Intent",
+      "name": "Process Turn",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        600,
-        300
-      ]
+      "position": [600, 300]
     },
     {
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "const payload = $json;\nconst intent = payload.intent || 'UNKNOWN';\nconst confidence = payload.confidence || 'medium';\nreturn [{ json: { intent, confidence } }];"
+        "jsCode": "const payload = $input.first().json;\nconst canAssert = payload.can_assert_facts === true;\nconst reply = payload.reply_text || '';\nconst escalation = payload.escalation || { needed: false, reason: null };\nreturn [{ json: {\n  intent: payload.intent || 'UNKNOWN',\n  confidence: payload.confidence || 'medium',\n  unit_hypothesis: payload.unit_hypothesis || null,\n  presence_evidence: payload.presence_evidence || 'missing',\n  availability_evidence: payload.availability_evidence || 'missing',\n  allowed_claims: payload.allowed_claims || {},\n  escalation,\n  can_assert_facts: canAssert,\n  reply_text: reply,\n  next: canAssert ? 'respond' : (escalation.needed ? 'handoff' : 'ask')\n} }];"
       },
       "id": "set-node",
-      "name": "Set Intent Output",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.3,
-      "position": [
-        900,
-        300
-      ]
+      "name": "Grounded Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
     }
   ],
   "connections": {
@@ -63,18 +57,18 @@
       "main": [
         [
           {
-            "node": "Classify Intent",
+            "node": "Process Turn",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Classify Intent": {
+    "Process Turn": {
       "main": [
         [
           {
-            "node": "Set Intent Output",
+            "node": "Grounded Reply",
             "type": "main",
             "index": 0
           }
@@ -82,9 +76,9 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "1"
+  "versionId": "fase-1-turn"
 }

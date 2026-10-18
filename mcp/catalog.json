@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "servers": [
+    {
+      "name": "clinic-locations",
+      "schema": "mcp/schemas/clinic-locations.json",
+      "canonical_problems": ["P3"]
+    },
+    {
+      "name": "google-calendar",
+      "schema": "mcp/schemas/google-calendar.json",
+      "canonical_problems": ["P4", "P5", "P6"]
+    },
+    {
+      "name": "whatsapp",
+      "schema": "mcp/schemas/whatsapp.json",
+      "canonical_problems": ["P1", "P8"]
+    },
+    {
+      "name": "guardrails",
+      "schema": "mcp/schemas/guardrails.json",
+      "canonical_problems": ["P2", "P7"]
+    },
+    {
+      "name": "n8n-ops",
+      "schema": "mcp/schemas/n8n-ops.json",
+      "canonical_problems": ["P10"]
+    }
+  ]
+}

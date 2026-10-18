@@ -1,4 +1,4 @@
-# N8N Dental WhatsApp Automation
+# Secretária WhatsApp — Harmonização orofacial
 
 <p align="center">
   <img src="https://img.shields.io/badge/n8n-Workflow%20Automation-00A4F4?style=for-the-badge&logo=n8n&logoColor=white" />
@@ -7,18 +7,17 @@
   <img src="https://img.shields.io/badge/WhatsApp-Integration-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" />
 </p>
 
-A self-hosted agentic workflow for dental appointment confirmation and patient follow-up. This project combines n8n, a lightweight Python intent-classification service, and Docker to support conversational appointment handling through WhatsApp and related integrations.
+Secretária digital no WhatsApp da dra de **harmonização orofacial**: atendimento humanizado, duas unidades (Pato Branco DDD 46 e São Carlos DDD 16), agenda no Google Calendar e guardrails para não alucinar horário, procedimento, preço nem a cidade da dra. Não é secretária de consultório odontológico geral.
+
+Governança agentic (TPM, Dev, QA, MCPs): `AGENTS.md` e `docs/canonical/CANONICAL_MAP.md`.
 
 ## Overview
 
-Dental clinics often face revenue loss from no-shows, missed confirmations, and slow manual follow-up. This solution automates the first layer of patient interaction by:
-
-- sending confirmation reminders
-- receiving patient replies through webhooks
-- classifying intent as CONFIRM, RESCHEDULE, CANCEL, QUESTION, or UNKNOWN
-- routing the interaction to the next appropriate workflow step
-
-The design is intentionally modular and can also serve as a reusable template for OpenClaw-style automation projects.
+- receber o paciente no Zap com tom de secretária
+- classificar intenção (confirmar, reagendar, cancelar, dúvida, horário, cidade)
+- tratar DDD 46/16 como hipótese de unidade, não como “onde a dra está”
+- só citar disponibilidade/presença com evidência de calendário
+- escalar para humana quando faltar fato ou houver risco clínico
 
 ## What This Project Includes
 
@@ -80,10 +79,12 @@ The solution is organized into three main layers:
    docker compose up -d
    ```
 
-4. Start the classifier service
+4. Start the turn service (intent + grounding + voice)
    ```bash
    python intent_service.py
    ```
+
+   Local contract: `POST http://localhost:8001/turn` with `{"message": "...", "whatsapp_number": "5546..."}`.
 
 5. Validate locally
    ```bash
@@ -113,6 +114,8 @@ The repository includes automated tests for:
 
 - intent classification behavior
 - guardrail configuration loading
+- grounded secretary voice (no invented slots)
+- HTTP round-trip on `/turn`
 - project structure expectations
 
 Run them with:
@@ -127,10 +130,7 @@ When a decision could create clinical, legal, or financial risk, AI should not m
 
 ## Roadmap
 
-- improve workflow branching for confirm, reschedule, cancel, and question paths
-- add stronger webhook validation and error handling
-- integrate Google Calendar updates and WhatsApp provider actions
-- expand the project into a reusable OpenClaw-style automation template
+Ver fases em `IMPLEMENTATION_PLAN.md`. Próximo: Fase 1 (canal + voz) e Fase 2 (unidade/presença).
 
 ## License
 

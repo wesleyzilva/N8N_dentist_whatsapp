@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "clinic-locations": {
+      "command": "python",
+      "args": ["-m", "app.infrastructure.mcp.servers.locations"],
+      "disabled": true,
+      "comment": "Habilitar quando o servidor MCP da Fase 2 existir."
+    },
+    "google-calendar": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-google-calendar"],
+      "disabled": true,
+      "env": {
+        "GOOGLE_CLIENT_ID": "${GOOGLE_CLIENT_ID}",
+        "GOOGLE_CLIENT_SECRET": "${GOOGLE_CLIENT_SECRET}"
+      }
+    }
+  }
+}

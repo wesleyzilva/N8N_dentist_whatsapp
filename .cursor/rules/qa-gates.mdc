@@ -1,0 +1,11 @@
+---
+description: Gates de QA anti-alucinação
+globs: tests/**
+alwaysApply: false
+---
+
+# QA
+
+- Seguir `docs/governance/PHASE_GATES.md`.
+- Casos mínimos: DDD 46, DDD 16, DDD outro, texto vs DDD em conflito, calendário down.
+- Não aprovar só porque o POST /classify responde 200.

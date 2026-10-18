@@ -1,0 +1,19 @@
+# Serviço de intenção/turno da secretária (intent_service.py)
+# Sem segredos na imagem: toda configuração entra por variável de ambiente.
+ARG PYTHON_VERSION=3.14
+FROM python:${PYTHON_VERSION}-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PORT=8001
+
+WORKDIR /srv/app
+COPY . .
+
+# O serviço atual usa só a biblioteca padrão; se um dia houver requirements.txt, ele é instalado.
+RUN if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi \
+ && useradd --system --no-create-home appuser
+
+USER appuser
+EXPOSE 8001
+CMD ["python", "intent_service.py"]

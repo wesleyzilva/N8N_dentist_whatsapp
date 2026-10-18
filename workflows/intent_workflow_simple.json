@@ -16,7 +16,7 @@
     },
     {
       "parameters": {
-        "url": "http://host.docker.internal:8001/classify",
+        "url": "http://host.docker.internal:8001/turn",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -28,11 +28,11 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "{\"message\": \"Vou confirmar minha consulta\"}",
+        "jsonBody": "{\"message\": \"Vou confirmar minha consulta\", \"whatsapp_number\": \"5546999887766\"}",
         "options": {}
       },
       "id": "http-request-node-simple",
-      "name": "Classify Intent",
+      "name": "Process Turn",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [600, 300]
@@ -40,12 +40,12 @@
     {
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "return [{ json: { ok: true } }];"
+        "jsCode": "const payload = $json;\nreturn [{ json: { ok: true, intent: payload.intent, reply_text: payload.reply_text, can_assert_facts: payload.can_assert_facts } }];"
       },
       "id": "set-node-simple",
       "name": "Set Response",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.3,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [900, 300]
     }
   ],
@@ -54,14 +54,14 @@
       "main": [
         [
           {
-            "node": "Classify Intent",
+            "node": "Process Turn",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Classify Intent": {
+    "Process Turn": {
       "main": [
         [
           {
@@ -77,5 +77,5 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "2"
+  "versionId": "fase-1-turn-simple"
 }

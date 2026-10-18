@@ -1,0 +1,13 @@
+---
+description: Camadas Python do domínio da secretária
+globs: app/**/*.py
+alwaysApply: false
+---
+
+# Python
+
+- Negócio em `app/domains/`; I/O em `app/infrastructure/`; HTTP em `app/interfaces/`.
+- Clínicas e tom vêm de `config/clinic.json` e `config/guardrails.json`.
+- Novos fatos externos: estender `mcp/schemas/` antes do cliente.
+- `CalendarGateway` vazio devolve lista vazia — nunca slots fake.
+- Manter testes em `tests/` para intent, unidade e grounding.

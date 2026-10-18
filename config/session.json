@@ -1,0 +1,35 @@
+{
+  "ttl_seconds": 86400,
+  "max_entries": 5000,
+  "llm_brief_max_chars": 160,
+  "store_message_text": false,
+  "store_clinical_text": false,
+  "store_availability_or_presence": false,
+  "affirmatives": [
+    "sim",
+    "isso",
+    "isso mesmo",
+    "pode ser",
+    "certo",
+    "exato",
+    "pode",
+    "ok",
+    "uhum"
+  ],
+  "negatives": [
+    "nao",
+    "não",
+    "outra",
+    "outro",
+    "outra cidade",
+    "nao e essa"
+  ],
+  "opt_out": [
+    "parar",
+    "stop",
+    "descadastre",
+    "nao quero receber",
+    "não quero receber",
+    "opt out"
+  ]
+}

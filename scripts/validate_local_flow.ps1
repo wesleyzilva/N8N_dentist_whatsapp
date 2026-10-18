@@ -1,6 +1,7 @@
 param(
     [string]$Message = "Vou confirmar minha consulta",
-    [string]$ClassifierUrl = "http://127.0.0.1:8001/classify",
+    [string]$From = "5546999887766",
+    [string]$TurnUrl = "http://127.0.0.1:8001/turn",
     [string]$HealthUrl = "http://127.0.0.1:8001/healthz",
     [string]$N8NWebhookUrl = "http://localhost:5678/webhook/intent-webhook"
 )
@@ -33,12 +34,18 @@ catch {
 }
 
 Write-Host "[2/4] Executando testes automáticos..." -ForegroundColor Cyan
-python -m pytest -q tests/test_classify_intent.py tests/test_guardrails_config.py tests/test_project_structure.py
+python -m pytest -q
 
-Write-Host "[3/4] Testando classificação via serviço HTTP..." -ForegroundColor Cyan
-$payload = @{ message = $Message }
-$classifyResult = Invoke-JsonPost -Url $ClassifierUrl -Payload $payload
-$classifyResult | ConvertTo-Json -Depth 5
+Write-Host "[3/4] Testando POST /turn (grounding + voz)..." -ForegroundColor Cyan
+$payload = @{ message = $Message; from = $From }
+$turnResult = Invoke-JsonPost -Url $TurnUrl -Payload $payload
+$turnResult | ConvertTo-Json -Depth 5
+if (-not $turnResult.reply_text) {
+    throw "POST /turn não devolveu reply_text"
+}
+if ($turnResult.reply_text -match "14h|09:00") {
+    throw "reply_text contém horário sem evidência de calendário"
+}
 
 Write-Host "[4/4] Testando webhook do n8n..." -ForegroundColor Cyan
 try {

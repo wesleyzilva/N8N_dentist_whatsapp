@@ -1,0 +1,12 @@
+---
+description: Mapa canônico e fronteira de escopo da secretária WhatsApp
+alwaysApply: true
+---
+
+# Escopo
+
+- Produto: secretária humanizada no WhatsApp de harmonização orofacial (Pato Branco DDD 46, São Carlos DDD 16). Não é consultório odontológico geral.
+- Leia `docs/canonical/CANONICAL_MAP.md` e `AGENTS.md` antes de editar.
+- Fora do MVP: VIPpocket, fidelidade, Customer Match, docs em `docs/archive/`.
+- Toda tarefa aponta um ID P1–P10 e uma fase de `IMPLEMENTATION_PLAN.md`.
+- n8n orquestra; regras de unidade/agenda/grounding ficam em `app/` + `config/`.

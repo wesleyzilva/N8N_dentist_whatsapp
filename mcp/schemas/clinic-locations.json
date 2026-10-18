@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "clinic-locations",
+  "tools": {
+    "list_units": {
+      "description": "Lista unidades canônicas (Pato Branco DDD 46, São Carlos DDD 16).",
+      "returns": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["id", "city", "ddd", "google_calendar_id"]
+        }
+      }
+    },
+    "resolve_unit": {
+      "description": "Hipótese de unidade do paciente. Nunca retorna presença da dra.",
+      "arguments": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" },
+          "whatsapp_number": { "type": "string" }
+        }
+      },
+      "returns": {
+        "type": "object",
+        "required": ["unit_id", "source", "is_presence", "needs_confirmation"]
+      }
+    }
+  }
+}

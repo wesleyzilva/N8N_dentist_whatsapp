@@ -19,3 +19,18 @@ def test_reschedule():
 def test_cancel():
     result = classify_intent("Quero cancelar")
     assert result["intent"] == "CANCEL"
+
+
+def test_availability():
+    result = classify_intent("Quero ver disponibilidade")
+    assert result["intent"] == "AVAILABILITY"
+
+
+def test_location():
+    result = classify_intent("Atende em São Carlos hoje")
+    assert result["intent"] == "LOCATION"
+
+
+def test_question_about_hof():
+    result = classify_intent("Vocês fazem harmonização orofacial?")
+    assert result["intent"] == "QUESTION"

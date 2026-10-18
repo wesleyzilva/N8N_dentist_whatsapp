@@ -10,7 +10,9 @@ def test_guardrails_config_loaded():
     config = load_guardrails()
     assert config["default_intent"] == "UNKNOWN"
     assert "CONFIRM" in config["intent_examples"]
+    assert "LOCATION" in config["intent_examples"]
     assert "guardrails" in config
+    assert config["guardrails"]["grounding"]["ddd_is_hypothesis_not_presence"] is True
 
 
 def test_examples_are_not_empty():

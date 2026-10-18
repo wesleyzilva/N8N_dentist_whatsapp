@@ -1,11 +1,8 @@
-# Estrutura reorganizada do projeto
+# Estrutura
 
-## Pastas principais
-
-- app/domains/appointments: lógica de negócio para atendimento e classificação de intenções.
-- app/infrastructure/config: configuração e guardrails centralizados.
-- app/interfaces/http: interface HTTP para integração com o n8n.
-- config: arquivos JSON e configurações reutilizáveis.
-- scripts: validações e automações locais.
-- tests: testes automatizados.
-- workflows: fluxos do n8n.
+- `docs/canonical/CANONICAL_MAP.md` — problemas P1–P10
+- `AGENTS.md` — roteamento TPM / Dev / QA
+- `app/domains` — intenção, unidade, grounding
+- `config/clinic.json` — Pato Branco (46) e São Carlos (16)
+- `mcp/` — contratos para agentes e runtime
+- `workflows/` — n8n (orquestração, não regra de negócio)

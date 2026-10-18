@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "guardrails",
+  "tools": {
+    "allowed_claims": {
+      "description": "Filtra o que a voz pode afirmar dado o evidence bag.",
+      "arguments": {
+        "type": "object",
+        "required": ["requested", "evidence"]
+      }
+    },
+    "tone_policy": {
+      "description": "Devolve tom, fallback e lista avoid de config/guardrails.json."
+    }
+  }
+}

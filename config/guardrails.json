@@ -5,18 +5,46 @@
     "avoid": [
       "mensagens longas",
       "tom agressivo",
-      "pressão indevida"
+      "pressão indevida",
+      "inventar horário",
+      "inventar cidade da doutora",
+      "inventar procedimento ou preço",
+      "falar como consultório odontológico geral",
+      "dar conselho clínico ou diagnóstico"
     ],
     "required_words": [
-      "consulta",
+      "atendimento",
       "agendamento",
       "confirmação"
     ],
-    "fallback_message": "Olá! Estou aqui para ajudar com sua consulta. Se precisar, responda com confirmação, reagendamento ou cancelamento."
+    "grounding": {
+      "never_invent": [
+        "availability_slots",
+        "doctor_presence_city",
+        "address",
+        "price",
+        "procedure_details",
+        "clinical_advice"
+      ],
+      "on_missing_evidence": "ask_or_escalate",
+      "ddd_is_hypothesis_not_presence": true
+    },
+    "fallback_message": "Olá! Posso te ajudar com o atendimento de harmonização orofacial. Se quiser, me diz se é para confirmar, reagendar, cancelar ou ver horário — e em qual cidade (Pato Branco ou São Carlos).",
+    "clinical_escalate_keywords": [
+      "dor",
+      "emergencia",
+      "emergência",
+      "sangramento",
+      "inchaco",
+      "inchaço",
+      "urgente",
+      "desmaio"
+    ]
   },
   "intent_examples": {
     "CONFIRM": [
       "Vou confirmar minha consulta",
+      "Vou confirmar meu procedimento",
       "Sim, estarei presente"
     ],
     "RESCHEDULE": [
@@ -29,7 +57,16 @@
     ],
     "QUESTION": [
       "Tenho uma dúvida",
-      "Como funciona a consulta?"
+      "Como funciona a consulta?",
+      "Vocês fazem harmonização orofacial?"
+    ],
+    "AVAILABILITY": [
+      "Tem horário essa semana",
+      "Quero ver disponibilidade"
+    ],
+    "LOCATION": [
+      "A dra está em Pato Branco",
+      "Atende em São Carlos hoje"
     ],
     "UNKNOWN": [
       "Olá",

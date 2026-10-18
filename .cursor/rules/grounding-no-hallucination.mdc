@@ -1,0 +1,13 @@
+---
+description: Anti-alucinação — agenda e presença só com evidência
+alwaysApply: true
+---
+
+# Grounding
+
+- DDD do paciente é hipótese de unidade, não cidade da dra.
+- Sem resultado de calendário/MCP: não citar horário, endereço ou “a dra está em X”.
+- Ação legal: perguntar cidade, pedir um instante, ou escalar.
+- LLM só redige `allowed_claims` de `app/domains/guardrails/grounding.py`.
+- Sem evidência: não citar procedimento, produto ou preço de harmonização orofacial.
+- Testes novos de agenda/presença devem incluir o caso “ferramenta vazia/erro”.

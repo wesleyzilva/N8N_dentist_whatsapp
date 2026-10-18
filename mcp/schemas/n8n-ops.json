@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "n8n-ops",
+  "tools": {
+    "import_workflow": {
+      "description": "Importa JSON de workflows/ no n8n local. DevOps/Dev apenas.",
+      "arguments": {
+        "type": "object",
+        "required": ["path"]
+      }
+    },
+    "run_webhook": {
+      "description": "Dispara webhook de teste para QA. Sem payload clínico real.",
+      "arguments": {
+        "type": "object",
+        "required": ["path", "body"]
+      }
+    }
+  }
+}
