@@ -1,0 +1,150 @@
+{
+  "updated": "2026-10-22",
+  "product": "Secretária WhatsApp — harmonização orofacial (Pato Branco 46 / São Carlos 16)",
+  "current_phase": 1,
+  "how_to_read": "Este arquivo é o registro do TPM (declarado). O TPM Console cruza cada item com evidência automática (pytest, cenários, probes). Se o declarado diz 'feito' e a evidência está vermelha, o Console mostra divergência.",
+  "phases": [
+    {
+      "id": 0,
+      "name": "Governança",
+      "status": "done",
+      "problems": [],
+      "gate": "TPM abre sprint P* sem consultar docs órfãos",
+      "automated": ["docs:canonical", "mcp:schemas", "config:json"],
+      "manual": [
+        {"label": "Mapa canônico, RACI, RAID, skills e rules Cursor", "done": true},
+        {"label": "Contratos MCP em mcp/schemas", "done": true}
+      ]
+    },
+    {
+      "id": 1,
+      "name": "Canal e voz",
+      "status": "in_progress",
+      "problems": ["P1", "P2", "P10"],
+      "gate": "Round-trip webhook → /turn → texto humanizado, sem fatos inventados",
+      "automated": ["pytest", "scenarios:phase1", "workflows:audit"],
+      "manual": [
+        {"label": "POST /turn devolve contrato canônico", "done": true},
+        {"label": "Workflow importado e ativo no n8n", "done": false},
+        {"label": "POST no webhook n8n devolve reply_text do /turn", "done": false},
+        {"label": "Provedor WhatsApp real definido (Evolution API ou Meta Cloud)", "done": false}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Unidade e presença",
+      "status": "in_progress",
+      "problems": ["P3", "P4"],
+      "gate": "46, 16, DDD outro e texto vs DDD; 'a dra está em X?' nunca sem ferramenta",
+      "automated": ["scenarios:phase2", "config:json"],
+      "manual": [
+        {"label": "Calendário/bloco de viagem por unidade (hoje as duas unidades apontam para o mesmo calendar_id)", "done": false},
+        {"label": "Dona valida a premissa: dra alterna entre as cidades e isso está no Google Calendar", "done": false}
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Agenda grounded",
+      "status": "blocked",
+      "problems": ["P2", "P5"],
+      "gate": "Se o calendário falhar: pede espera ou escala; zero horários sintéticos",
+      "automated": ["scenarios:phase3", "integration:google-calendar"],
+      "manual": [
+        {"label": "OAuth Google Calendar autorizado e testado", "done": false},
+        {"label": "Cliente real de freebusy em app/infrastructure/mcp (hoje só Missing/Error/Fixture)", "done": false}
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Mutação de agenda",
+      "status": "planned",
+      "problems": ["P6"],
+      "gate": "Nenhuma mutação sem CONFIRM explícito no turno; rollback documentado",
+      "automated": ["workflows:audit"],
+      "manual": [
+        {"label": "Remover lógica de reserva do canvas n8n (hoje há nós Google Calendar Agendar + regras em Code node)", "done": false}
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Triagem e humana",
+      "status": "planned",
+      "problems": ["P7", "P8"],
+      "gate": "Caso clínico não recebe conselho; handoff com resumo factual",
+      "automated": ["scenarios:phase5"],
+      "manual": [
+        {"label": "Canal interno de handoff (WhatsApp da equipe / fila)", "done": false}
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Compliance e produção",
+      "status": "planned",
+      "problems": ["P9"],
+      "gate": "Opt-out, auditoria de decisão, backup do n8n; Security assina",
+      "automated": ["scenarios:phase6", "secrets:scan"],
+      "manual": [
+        {"label": "Persistência do opt-out (hoje só em memória com TTL)", "done": false},
+        {"label": "Log de decisão auditável", "done": false}
+      ]
+    }
+  ],
+  "problems": [
+    {"id": "P1", "title": "Atendimento humanizado no Zap", "runtime": "SecretaryVoice", "source": "config/voice.json", "phase": 1, "declared": "in_progress", "owner": "Voice"},
+    {"id": "P2", "title": "Não alucinar", "runtime": "GuardrailGrounding", "source": "MCP guardrails", "phase": 1, "declared": "in_progress", "owner": "Dev + QA"},
+    {"id": "P3", "title": "Entender unidade (46 vs 16)", "runtime": "Location", "source": "MCP clinic-locations", "phase": 2, "declared": "in_progress", "owner": "Dev"},
+    {"id": "P4", "title": "Onde a dra está agora", "runtime": "Presence", "source": "Calendário + clinic.json", "phase": 2, "declared": "blocked", "owner": "Architect"},
+    {"id": "P5", "title": "Disponibilidade real", "runtime": "Agenda", "source": "MCP google-calendar", "phase": 3, "declared": "blocked", "owner": "Dev + DevOps"},
+    {"id": "P6", "title": "Confirmar / reagendar / cancelar", "runtime": "Appointments", "source": "Calendar write + n8n", "phase": 4, "declared": "planned", "owner": "Dev"},
+    {"id": "P7", "title": "Dúvida vs emergência vs clínico", "runtime": "Triage", "source": "Guardrails clínicos", "phase": 5, "declared": "in_progress", "owner": "Dev + Voice"},
+    {"id": "P8", "title": "Escalar para humana", "runtime": "Escalation", "source": "WhatsApp interno / fila", "phase": 5, "declared": "in_progress", "owner": "Dev + DevOps"},
+    {"id": "P9", "title": "LGPD, opt-out, auditoria", "runtime": "Compliance", "source": "logs + blacklist", "phase": 6, "declared": "in_progress", "owner": "Security"},
+    {"id": "P10", "title": "Orquestração confiável", "runtime": "Orchestrator (n8n)", "source": "MCP n8n-ops", "phase": 1, "declared": "in_progress", "owner": "DevOps"}
+  ],
+  "test_map": {
+    "tests/test_classify_intent.py": ["P1", "P7"],
+    "tests/test_grounding.py": ["P2"],
+    "tests/test_guardrails_config.py": ["P2"],
+    "tests/test_http_turn.py": ["P10", "P1"],
+    "tests/test_location_resolver.py": ["P3"],
+    "tests/test_n8n_grounded_reply.py": ["P10", "P2"],
+    "tests/test_project_structure.py": [],
+    "tests/test_scenarios.py": [],
+    "tests/test_secretary_voice.py": ["P1", "P2"],
+    "tests/test_turn.py": ["P2", "P4", "P5", "P7"]
+  },
+  "next_actions": [
+    {"id": "A1", "priority": "alta", "problem": "P10", "phase": 1, "owner": "DevOps", "title": "Subir stack (docker compose up), importar workflows/intent_workflow.json e validar o webhook no Console (aba Integrações)"},
+    {"id": "A2", "priority": "alta", "problem": "P6", "phase": 4, "owner": "Architect", "title": "Decidir: remover do canvas n8n a triagem/slots/reserva (Code node 'Triagem e Horários Próximos') e mover para app/ conforme regra n8n-workflows"},
+    {"id": "A3", "priority": "alta", "problem": "P9", "phase": 6, "owner": "Security", "title": "Rotacionar a chave da Evolution API que esteve no git e conferir o N8N_ENCRYPTION_KEY padrão do compose"},
+    {"id": "A4", "priority": "media", "problem": "P4", "phase": 2, "owner": "TPM", "title": "Obter calendar_id distinto por unidade (hoje Pato Branco e São Carlos usam o mesmo) e endereço real das unidades"},
+    {"id": "A5", "priority": "media", "problem": "P5", "phase": 3, "owner": "Dev", "title": "Implementar GoogleCalendarGateway real (freebusy) atrás do protocolo CalendarGateway; reaproveitar legacy/auth_e_agenda.py para OAuth"},
+    {"id": "A6", "priority": "media", "problem": "P8", "phase": 5, "owner": "Dev", "title": "Separar motivos de escalonamento (clinical, human_requested, complaint); hoje pedido de humana sai como 'clinical'"},
+    {"id": "A7", "priority": "baixa", "problem": "P7", "phase": 5, "owner": "Dev", "title": "Palavra 'dor' casa por substring (ex.: 'adorei'); trocar por limite de palavra mantendo viés seguro"},
+    {"id": "A8", "priority": "baixa", "problem": "P1", "phase": 1, "owner": "Voice", "title": "Decidir destino do agente conversacional docker/n8n/calendar.json (Gemini + tools), que contradiz a arquitetura n8n→Python"}
+  ],
+  "inventory": [
+    {"path": "app/", "kind": "canônico", "decision": "manter", "note": "Domínio, config, gateways e HTTP /turn. Fonte de regras."},
+    {"path": "config/", "kind": "canônico", "decision": "manter", "note": "clinic, guardrails, voice, session."},
+    {"path": "tests/", "kind": "canônico", "decision": "manter", "note": "pytest + tests/scenarios/conversations.json (suíte de conversas)."},
+    {"path": "scripts/run_scenarios.py", "kind": "canônico", "decision": "manter", "note": "Executa a suíte em processo ou contra HTTP (/simulate/turn, n8n)."},
+    {"path": "scripts/n8n_grounded_reply.py", "kind": "canônico", "decision": "manter", "note": "Espelho do nó Grounded Reply."},
+    {"path": "console/", "kind": "canônico", "decision": "manter", "note": "TPM Console local (Node, sem dependências)."},
+    {"path": "workflows/intent_workflow.json", "kind": "orquestração", "decision": "migrar", "note": "Webhook→/turn ok; Code node com regras de negócio e reserva viola a regra do n8n."},
+    {"path": "workflows/intent_workflow_simple.json", "kind": "orquestração", "decision": "manter", "note": "Smoke test do contrato."},
+    {"path": "workflows/intent_workflow.bak.json", "kind": "orquestração", "decision": "arquivar", "note": "Backup do fluxo anterior (usa /classify)."},
+    {"path": "docker-compose.yml", "kind": "infra", "decision": "manter", "note": "postgres + n8n + Evolution API. Corrigido: serviço evolution-api indentado e chave via .env."},
+    {"path": "docker/sql/", "kind": "infra", "decision": "manter", "note": "Compose cloud-ready, SQL de schema e Dockerfile.intent. Ver docker/sql/docs/LOCAL_TO_CLOUD.md."},
+    {"path": "docker/n8n/calendar.json", "kind": "experimento", "decision": "decidir", "note": "Agente Gemini com tools no n8n; fora do desenho atual (A8)."},
+    {"path": "mcp/", "kind": "canônico", "decision": "manter", "note": "Contratos para Cursor e runtime."},
+    {"path": "intent_service.py", "kind": "atalho", "decision": "manter", "note": "Atalho para o serviço canônico (README e Dockerfile usam este caminho)."},
+    {"path": "legacy/intent_service_legacy.py", "kind": "legado", "decision": "arquivar", "note": "Serviço antigo: agenda sintética e can_assert_facts sempre true. Não usar."},
+    {"path": "legacy/intent_classifier.py", "kind": "legado", "decision": "avaliar reuso", "note": "Classificador híbrido regras+LLM com testes (37). Intents HOURS/CITY divergem do contrato (AVAILABILITY/LOCATION)."},
+    {"path": "legacy/auth_e_agenda.py", "kind": "legado", "decision": "reusar na Fase 3", "note": "Fluxo OAuth local do Google Calendar."},
+    {"path": "legacy/testar_secretaria_ia.py", "kind": "legado", "decision": "substituído", "note": "Smoke de 3 turnos no webhook; o Console cobre."},
+    {"path": "legacy/simular_conversas.ps1", "kind": "legado", "decision": "substituído", "note": "Simulador PowerShell com caminhos fixos; o Console cobre."},
+    {"path": "legacy/integrations_status.py", "kind": "legado", "decision": "substituído", "note": "Flags de integração; o Console cobre."},
+    {"path": "legacy/backup_XNTM.n8n-workflow.json", "kind": "legado", "decision": "arquivar", "note": "Export do workflow n8n (ID XNTM...)."},
+    {"path": "docs/archive/", "kind": "arquivo", "decision": "não usar", "note": "VIPpocket, plano mestre antigo. Fora do MVP."}
+  ]
+}

@@ -107,7 +107,8 @@ class IntentRequestHandler(BaseHTTPRequestHandler):
         return
 
 
-def run_server(host: str = "0.0.0.0", port: int | None = None) -> None:
+def run_server(host: str | None = None, port: int | None = None) -> None:
+    host = host or os.getenv("HOST", "0.0.0.0")
     port = port or int(os.getenv("PORT", "8001"))
     server = ThreadingHTTPServer((host, port), IntentRequestHandler)
     print(f"Intent service running on http://{host}:{port}")

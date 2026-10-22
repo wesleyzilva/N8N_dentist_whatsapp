@@ -7,9 +7,20 @@
   <img src="https://img.shields.io/badge/WhatsApp-Integration-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" />
 </p>
 
-Secretária digital no WhatsApp da dra de **harmonização orofacial e dentista**: atendimento humanizado, duas unidades (Pato Branco DDD 46 e São Carlos DDD 16), agenda no Google Calendar e guardrails para não alucinar horário, procedimento, preço nem a cidade da dra. É secretária de consultorio odontologico e de harmonização oro facial.
+Secretária digital no WhatsApp do consultório de **harmonização orofacial** (não é consultório odontológico geral): atendimento humanizado, duas unidades (Pato Branco DDD 46 e São Carlos DDD 16), agenda no Google Calendar (Fase 3) e guardrails para não alucinar horário, procedimento, preço nem a cidade da dra.
 
 Governança agentic (TPM, Dev, QA, MCPs): `AGENTS.md` e `docs/canonical/CANONICAL_MAP.md`.
+
+## Acompanhamento do TPM (comece por aqui)
+
+```bash
+npm run console      # http://localhost:4173  (Node 20+, sem dependências; inicia o serviço Python sozinho)
+npm run validate     # mesma validação no terminal (exit 1 se algo de código falhar)
+```
+
+O **TPM Console** mostra fases e P1–P10 com evidência automática, roda testes, valida configuração, workflows,
+segredos e integrações, e traz um **simulador de conversa** (calendário vazio, com erro ou fixture) e a suíte de
+cenários anti-alucinação. Detalhes em [`console/README.md`](console/README.md).
 
 ## Overview
 
@@ -50,9 +61,11 @@ The solution is organized into three main layers:
 - app/infrastructure: configuration and supporting infrastructure
 - app/interfaces: HTTP entry points and integrations
 - workflows: n8n workflow definitions
-- tests: automated validation for classification and project structure
-- scripts: local validation and operational helpers
-- docs: project documentation and architecture references
+- tests: pytest + `tests/scenarios/conversations.json` (suíte de conversas)
+- scripts: runner de cenários e helpers operacionais
+- console: TPM Console (Node, sem dependências)
+- legacy: código antigo mantido só para consulta/reuso (ver `legacy/README.md`)
+- docs: governança (`docs/governance/status.json` é o registro do TPM), arquivo morto em `docs/archive/`
 
 ## Prerequisites
 
@@ -79,7 +92,7 @@ The solution is organized into three main layers:
    docker compose up -d
    ```
 
-4. Start the turn service (intent + grounding + voice)
+4. Start the turn service (intent + grounding + voice). O TPM Console já faz isso; manualmente:
    ```bash
    python intent_service.py
    ```
@@ -88,7 +101,9 @@ The solution is organized into three main layers:
 
 5. Validate locally
    ```bash
+   pip install -r requirements-dev.txt
    pytest
+   npm run validate
    ```
 
    On Windows PowerShell, you can also run:
@@ -135,13 +150,3 @@ Ver fases em `IMPLEMENTATION_PLAN.md`. Próximo: Fase 1 (canal + voz) e Fase 2 (
 ## License
 
 This project is intended for internal and experimental use. Review credentials and secrets before production deployment.
-
-Referencias:
-https://www.instagram.com/dradaianaferrazsc/
-https://www.doctoralia.com.br/daiana-ferraz/dentista/sao-carlos
-https://wesleyzilva.github.io/dradaianaferraz_gold/
-https://www.linkedin.com/in/daiana-ferraz-87b678a8?originalSubdomain=br
-https://share.google/8izkLDUWHEjXf83gC Pato Branco
-
-
-QUERO REESTRUTURAR O PROJETO PARA DEIXAR NO JEITO PARA AS PROXIMOS DESENOVLVIMENTOS DE FORMA ORGANIZADA E FASEADA COMO AGENTIC TPM. CRIAR UM PLANEJAMENTO PRIMEIRO E REGISTRAR ESTA REESTRUTURAÇÃO SEM SE PERDER E PRECISO REGISTRAR O QUE JA TEMOS PARA APROVEITAR.

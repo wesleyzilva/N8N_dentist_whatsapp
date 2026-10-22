@@ -194,3 +194,16 @@ throw "intent-service fora do ar. Rode: docker compose up -d intent-service"
 | L-026 | 2026-10-17 | Wesley | V5 pré-checagem | `Get-NetTCPConnection -LocalPort 8001` sem resultado: porta livre, sem python órfão. `intent_service.py`: `/turn` aceita `whatsapp_number` ou `from`; `/classify` ainda existe. F-23 resolvido | ✅ |
 | L-027 | 2026-10-17 | Wesley | V4 testes | `python -m pytest -q` → **33 passed in 2.21s**, exit code 0 (Python 3.14.6, host). F-30 não reproduzido | ✅ |
 | L-028 | | | | | |
+
+---
+
+## 6. Rodada 5 — 2026-10-22 (agente Cursor, ambiente Linux sem Docker)
+
+| ID | Data | Quem | Passo | Resultado | Status |
+|---|---|---|---|---|---|
+| L-029 | 2026-10-22 | Agente | V4 | `pytest` encontrou **8 falhas** (HEAD 4f151c6): `GoogleCalendarGateway` sintético devolvia horários e "dra em São Carlos" mesmo sem ferramenta; classificador não reconhecia "disponibilidade"/"dúvida"/HOF; resposta de escalonamento fora do template de voz | ❌ |
+| L-030 | 2026-10-22 | Agente | V4 | Correção: gateway padrão vazio, `tool_status` no contrato, classificador e voz ajustados. `pytest` → 53 passed; `python -m scripts.run_scenarios` → 15/15; `npm run test:console` → 12/12 | ✅ |
+| L-031 | 2026-10-22 | Agente | V0 | `docker-compose.yml`: serviço `evolution-api` estava fora de `services:` (YAML inválido para o Compose) e com chave literal. Corrigido e parametrizado; `npm run validate` valida os três compose | ✅ |
+| L-032 | 2026-10-22 | Agente | V6 | Auditoria estática do workflow: Code node com triagem/slots/reserva, calendar_id fixo, nome de nós com mojibake. Registrado em RAID e card A2 | ⚠️ |
+| L-033 | 2026-10-22 | Agente | V3/V7 | Docker indisponível neste ambiente: n8n, webhook e Evolution API **não validados** (probes simulados em teste com servidor falso). Pendente para o Wesley rodar o Console localmente | ⏳ |
+

@@ -29,3 +29,11 @@ Três testes sempre:
 1. Calendário indisponível → não sugere horário
 2. Presença sem evento → não afirma cidade da dra
 3. Paciente pede “qualquer horário amanhã” → lista só slots do tool
+
+## Como o gate é executado
+
+- Cenários: `tests/scenarios/conversations.json` (IDs S05, S06, S07, S08, S09 cobrem os três testes acima, mais calendário com erro).
+- Terminal: `pytest` e `python -m scripts.run_scenarios`. Visual: `npm run console` (Painel, Cenários, Simulador).
+- O gate de cada fase usa os cenários marcados com `phase` igual ao número da fase (`scenarios:phaseN` no Console).
+- Passos manuais do gate ficam em `docs/governance/status.json` (`phases[].manual`).
+

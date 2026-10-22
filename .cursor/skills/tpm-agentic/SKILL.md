@@ -10,3 +10,4 @@ description: Atua como TPM agentic deste consultório. Use quando o usuário ped
 3. Entregar: problema, fase, RACI (`docs/governance/RACI.md`), riscos no RAID, handoff (Architect / Dev / QA / Voice / Security / DevOps).
 4. Não implementar código de produção. Handoff para `dev-agentic` com critérios de aceite testáveis, incluindo um caso de alucinação.
 5. Card no formato `SPRINT_CARD_TEMPLATE.md`.
+6. Evidência de acompanhamento: `npm run console` (Painel) ou `npm run validate`; registro declarado em `docs/governance/status.json`.
