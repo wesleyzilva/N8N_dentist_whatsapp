@@ -1,11 +1,22 @@
+# segredos e credenciais locais
+.env
+token.json
+credentials.json
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Node / TPM Console
+node_modules/
+console/.cache/
+
+# artefatos de simulação
 simulacao_resultado*.txt
 simulacao_resultado*.jsonl
+logs/
 
-.env
-testar_gemini.py
-
-.env
-testar_gemini.py
-
-.env
+# scratch local
 testar_gemini.py

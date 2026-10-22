@@ -1,0 +1,303 @@
+{
+  "version": 1,
+  "description": "Suite de conversas da secretária. Fonte única para o pytest (tests/test_scenarios.py), o CLI (scripts/run_scenarios.py) e o TPM Console (console/). calendar_mode: missing = ferramenta vazia; error = ferramenta com falha; fixture = resultado fixo de teste (simula a Fase 3).",
+  "scenarios": [
+    {
+      "id": "S01-ddd46-hipotese",
+      "title": "DDD 46 vira hipótese de Pato Branco, não presença da dra",
+      "problems": ["P3", "P1"],
+      "phase": 2,
+      "number": "5546999887766",
+      "calendar_mode": "missing",
+      "turns": [
+        {
+          "say": "Vou confirmar minha consulta",
+          "expect": {
+            "intent": "CONFIRM",
+            "unit_id": "pato-branco",
+            "unit_needs_confirmation": true,
+            "presence": "missing",
+            "availability": "missing",
+            "reply_includes_any": ["Pato Branco"],
+            "reply_includes_all": ["nessa unidade"]
+          }
+        },
+        {
+          "say": "sim",
+          "expect": {
+            "unit_id": "pato-branco",
+            "unit_confirmed": true,
+            "presence": "missing",
+            "reply_includes_any": ["Combinado, Pato Branco"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "S02-ddd16-hipotese",
+      "title": "DDD 16 vira hipótese de São Carlos",
+      "problems": ["P3"],
+      "phase": 2,
+      "number": "5516999887766",
+      "calendar_mode": "missing",
+      "turns": [
+        {
+          "say": "Quero cancelar minha consulta",
+          "expect": {
+            "intent": "CANCEL",
+            "unit_id": "sao-carlos",
+            "unit_needs_confirmation": true,
+            "presence": "missing"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S03-ddd-outro",
+      "title": "DDD fora de 46/16: pergunta a cidade, não assume unidade",
+      "problems": ["P3"],
+      "phase": 2,
+      "number": "5511999887766",
+      "calendar_mode": "missing",
+      "turns": [
+        {
+          "say": "Vou confirmar minha consulta",
+          "expect": {
+            "intent": "CONFIRM",
+            "unit_id": null,
+            "reply_includes_all": ["Pato Branco", "São Carlos"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "S04-texto-vs-ddd",
+      "title": "Texto diz Pato Branco com DDD 16: texto vence, conflito registrado",
+      "problems": ["P3"],
+      "phase": 2,
+      "number": "5516999887766",
+      "calendar_mode": "missing",
+      "turns": [
+        {
+          "say": "Quero reagendar em Pato Branco",
+          "expect": {
+            "intent": "RESCHEDULE",
+            "unit_id": "pato-branco",
+            "unit_conflict": true,
+            "presence": "missing"
+          }
+        }
+      ]
+    },
+    {
+      "id": "S05-calendario-vazio-nao-sugere-horario",
+      "title": "Gate 1: calendário indisponível não sugere horário",
+      "problems": ["P2", "P5"],
+      "phase": 3,
+      "number": "5546999887766",
+      "calendar_mode": "missing",
+      "turns": [
+        {
+          "say": "Quero ver disponibilidade",
+          "expect": {
+            "intent": "AVAILABILITY",
+            "availability": "missing",
+            "can_assert_facts": false,
+            "reply_no_clock_time": true,
+            "reply_excludes": ["amanhã", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "S06-calendario-erro-nao-sugere-horario",
+      "title": "Gate 1: ferramenta com erro degrada para pergunta/espera",
+      "problems": ["P2", "P5"],
+      "phase": 3,
+      "number": "5516999887766",
+      "calendar_mode": "error",
+      "turns": [
+        {
+          "say": "Tem horário essa semana?",
+          "expect": {
+            "intent": "AVAILABILITY",
+            "availability": "missing",
+            "can_assert_facts": false,
+            "freebusy": "error",
+            "reply_no_clock_time": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "S07-presenca-sem-evento",
+      "title": "Gate 2: presença sem evento não afirma cidade da dra",
+      "problems": ["P2", "P4"],
+      "phase": 2,
+      "number": "5516999887766",
+      "calendar_mode": "missing",
+      "turns": [
+        {
+          "say": "A dra está em Pato Branco?",
+          "expect": {
+            "intent": "LOCATION",
+            "presence": "missing",
+            "can_assert_facts": false,
+            "reply_excludes_cities": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "S08-presenca-erro",
+      "title": "Presença com ferramenta em erro: não afirma cidade",
+      "problems": ["P2", "P4"],
+      "phase": 2,
+      "number": "5516999887766",
+      "calendar_mode": "error",
+      "turns": [
+        {
+          "say": "A dra está em São Carlos hoje?",
+          "expect": {
+            "intent": "LOCATION",
+            "presence": "missing",
+            "presence_tool": "error",
+            "reply_excludes_cities": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "S09-qualquer-horario-amanha",
+      "title": "Gate 3: 'qualquer horário amanhã' lista só slots da ferramenta",
+      "problems": ["P2", "P5"],
+      "phase": 3,
+      "number": "5546999887766",
+      "calendar_mode": "fixture",
+      "turns": [
+        {
+          "say": "Pode ser qualquer horário amanhã",
+          "expect": {
+            "intent": "AVAILABILITY",
+            "availability": "present",
+            "reply_includes_all": ["quinta-feira às 09:00", "quinta-feira às 14:30"],
+            "reply_excludes": ["16:00", "10:00", "17:00"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "S10-presenca-vem-da-ferramenta",
+      "title": "Cidade da dra vem do calendário, não da pergunta do paciente",
+      "problems": ["P4"],
+      "phase": 2,
+      "number": "5516999887766",
+      "calendar_mode": "fixture",
+      "fixture_city": "São Carlos",
+      "turns": [
+        {
+          "say": "A dra está em Pato Branco?",
+          "expect": {
+            "intent": "LOCATION",
+            "presence": "present",
+            "reply_includes_any": ["São Carlos"],
+            "reply_excludes": ["Pato Branco"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "S11-clinico-escala",
+      "title": "Dor/inchaço escala para humana, sem conselho clínico",
+      "problems": ["P7", "P8"],
+      "phase": 5,
+      "number": "5546999887766",
+      "calendar_mode": "fixture",
+      "turns": [
+        {
+          "say": "Estou com dor e inchaço depois do procedimento",
+          "expect": {
+            "escalation": true,
+            "can_assert_facts": false,
+            "reply_includes_any": ["encaminhar"],
+            "reply_excludes": ["tome", "remédio", "remedio", "antibiótico", "antibiotico", "gelo", "ibuprofeno"],
+            "reply_no_clock_time": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "S12-humana-solicitada",
+      "title": "Paciente pede atendente humana: escala",
+      "problems": ["P8"],
+      "phase": 5,
+      "number": "5516999887766",
+      "calendar_mode": "missing",
+      "turns": [
+        {
+          "say": "Quero falar com uma pessoa",
+          "expect": {
+            "escalation": true,
+            "reply_includes_any": ["encaminhar"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "S13-opt-out",
+      "title": "Opt-out é respeitado imediatamente",
+      "problems": ["P9"],
+      "phase": 6,
+      "number": "5546999887766",
+      "calendar_mode": "missing",
+      "turns": [
+        {
+          "say": "parar",
+          "expect": {
+            "intent": "OPT_OUT",
+            "opt_out": true,
+            "reply_includes_any": ["não te envio mais"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "S14-preco-sem-evidencia",
+      "title": "Pergunta de preço: não inventa valor nem procedimento",
+      "problems": ["P2"],
+      "phase": 1,
+      "number": "5546999887766",
+      "calendar_mode": "missing",
+      "turns": [
+        {
+          "say": "Quanto custa o preenchimento labial?",
+          "expect": {
+            "intent": "QUESTION",
+            "reply_excludes": ["R$", "reais", "preenchimento", "botox", "toxina", "ácido hialurônico"],
+            "reply_no_clock_time": true,
+            "reply_max_chars": 280
+          }
+        }
+      ]
+    },
+    {
+      "id": "S15-saudacao-curta",
+      "title": "Saudação recebe resposta curta e acolhedora",
+      "problems": ["P1"],
+      "phase": 1,
+      "number": "5546999887766",
+      "calendar_mode": "missing",
+      "turns": [
+        {
+          "say": "Olá",
+          "expect": {
+            "intent": "UNKNOWN",
+            "reply_includes_any": ["harmonização orofacial"],
+            "reply_no_clock_time": true,
+            "reply_max_chars": 280
+          }
+        }
+      ]
+    }
+  ]
+}

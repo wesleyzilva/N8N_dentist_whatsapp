@@ -68,11 +68,11 @@ def classify_intent(message: str) -> Dict[str, str]:
         return {"intent": "LOCATION", "confidence": "high"}
 
     # 7. Disponibilidade de horários
-    if re.search(r"(hor[aá]rio|vaga|dispon[ií]ve|quando tem|tem vaga|tem hor|quinta|sexta|semana que vem|manh[aã]|tarde|marca pra mim)", text):
+    if re.search(r"(hor[aá]rio|vaga|dispon[ií]b|dispon[ií]v|quando tem|tem vaga|tem hor|quinta|sexta|semana que vem|manh[aã]|tarde|marca pra mim)", text):
         return {"intent": "AVAILABILITY", "confidence": "high"}
 
     # 8. Dúvidas
-    if re.search(r"(quanto custa|valor|pre[cç]o|atende|funciona|domingo|rob[oô]|pessoa de verdade|telefone)", text):
+    if re.search(r"(quanto custa|valor|pre[cç]o|atende|funciona|domingo|rob[oô]|pessoa de verdade|telefone|d[uú]vida|fazem|harmoniza|orofacial)", text):
         return {"intent": "QUESTION", "confidence": "high"}
 
     # 9. Fallback Inteligente no Gemini

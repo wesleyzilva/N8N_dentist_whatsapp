@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TPM Console — Secretária WhatsApp</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">S</span>
+        <div>
+          <strong>TPM Console</strong>
+          <small>Secretária WhatsApp · HOF</small>
+        </div>
+      </div>
+      <nav id="nav">
+        <a href="#painel" data-view="painel"><span>▦</span> Painel do TPM</a>
+        <a href="#simulador" data-view="simulador"><span>💬</span> Simulador de conversa</a>
+        <a href="#cenarios" data-view="cenarios"><span>✔</span> Cenários de teste</a>
+        <a href="#validacao" data-view="validacao"><span>⚙</span> Validações</a>
+        <a href="#integracoes" data-view="integracoes"><span>⇄</span> Integrações</a>
+        <a href="#docs" data-view="docs"><span>☰</span> Documentos</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div id="service-pill" class="pill gray">serviço Python…</div>
+        <div class="service-actions">
+          <button id="service-start" class="btn small">Iniciar serviço</button>
+          <button id="service-stop" class="btn small ghost">Parar</button>
+        </div>
+        <p class="muted tiny">Local, somente 127.0.0.1. Segredos nunca são exibidos.</p>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <h1 id="view-title">Painel do TPM</h1>
+          <p id="view-sub" class="muted"></p>
+        </div>
+        <div class="topbar-actions">
+          <span id="last-run" class="muted tiny"></span>
+          <button id="run-all" class="btn primary">Rodar todas as validações</button>
+        </div>
+      </header>
+      <div id="toast" class="toast" hidden></div>
+      <section id="view"></section>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

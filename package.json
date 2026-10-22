@@ -1,0 +1,13 @@
+{
+  "name": "secretaria-whatsapp-tpm-console",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TPM Console: acompanhamento, validações e simulador de conversa da secretária WhatsApp (harmonização orofacial)",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "console": "node console/server.mjs",
+    "validate": "node console/server.mjs --check",
+    "test:console": "node --test console/test/*.test.mjs"
+  }
+}

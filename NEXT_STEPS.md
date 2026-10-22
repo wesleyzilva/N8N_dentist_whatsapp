@@ -1,25 +1,21 @@
 # Próximos passos
 
-## Feito (Fase 0)
-- Mapa canônico P1–P10, arquitetura de secretária (não VIPpocket)
-- Fases 0–6, RACI, RAID, gates
-- Agentes Cursor (TPM, Architect, Dev, QA, Voice, Security, DevOps)
-- Contratos MCP; clínicas 46/16; grounding no domínio
+Fonte detalhada e viva: `docs/governance/status.json` (backlog A1–A8) e o Painel do TPM Console (`npm run console`).
 
-## Feito nesta entrega (Fase 1 — canal e voz)
-- `POST /turn`: intent + hipótese de unidade + grounding + `reply_text`
-- Workflow n8n chama `/turn` (path `intent-webhook`)
-- Voz só com claims permitidas (`config/voice.json`)
-- QA: round-trip HTTP + calendário vazio não inventa horário
-- Prática canônica: harmonização orofacial (não odontologia geral); sem procedimento/preço inventado
+## Feito
+- Fase 0: mapa canônico P1–P10, RACI, RAID, rules/skills Cursor, contratos MCP.
+- Fase 1 (código): `POST /turn` com intent, unidade (hipótese), grounding e `reply_text`; voz por templates; sessão curta.
+- TPM Console: painel por fase/P*, validações, integrações, simulador de conversa e 15 cenários anti-alucinação.
+- Correção do grounding: calendário padrão vazio; ferramenta com erro degrada para pergunta/espera.
 
-## Agora (fechar gate da Fase 1 no n8n)
-1. Subir o serviço (`python intent_service.py`) e o Compose
-2. Importar `workflows/intent_workflow.json` e POSTar no webhook
-3. Conferir que a resposta ao paciente é `reply_text`, nunca um horário solto no canvas
+## Agora (fechar o gate da Fase 1)
+1. `docker compose up -d` (defina `EVOLUTION_API_KEY` no `.env`) e abra o Console > Integrações.
+2. Importar e ativar `workflows/intent_workflow.json` no n8n; conferir "Webhook intent-webhook" verde.
+3. Console > Cenários > "Contra o n8n" e anotar a evidência no `VALIDATION_LOG.md`.
+4. Decidir A2 (tirar regra de negócio do canvas) antes de ativar qualquer nó de reserva.
 
-## Em seguida (Fase 2)
-- Confirmar cidade quando a fonte for só DDD
-- Presença da dra bloqueada até MCP de calendário (Fase 3)
+## Em seguida
+- Fase 2: calendário distinto por unidade e validação da premissa da dona (A4).
+- Fase 3: `GoogleCalendarGateway` real atrás do protocolo (A5).
 
-Comando: `pytest`
+Comandos: `pytest` · `npm run validate` · `npm run console` · `npm run test:console`
