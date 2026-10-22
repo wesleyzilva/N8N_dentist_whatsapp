@@ -128,6 +128,23 @@ export function buildOverview(run) {
     };
   });
 
+  const steps = (status.execution_steps || []).map((step) => {
+    const automated = step.checks.map((id) => {
+      const result = results[id];
+      return { id, title: result?.title || id, status: result?.status || "pending", summary: result?.summary || "ainda não executado" };
+    });
+    const manualDone = step.manual.filter((m) => m.done).length;
+    return {
+      ...step,
+      automated,
+      manualDone,
+      manualTotal: step.manual.length,
+      color: run && automated.length ? worstColor(automated.map((a) => checkColor(a.status))) : "gray",
+      ready: automated.every((a) => a.status === "pass") && manualDone === step.manual.length,
+      current: step.id === status.current_step,
+    };
+  });
+
   const findings = Object.values(results)
     .filter((r) => r.status === "fail" || r.status === "warn")
     .map((r) => ({
@@ -153,6 +170,7 @@ export function buildOverview(run) {
     tests: pytest ? { passed: pytest.passed, failed: pytest.failed, total: pytest.total } : null,
     scenarios: results.scenarios?.data?.summary || null,
     phases,
+    steps,
     problems,
     findings,
     nextActions: status.next_actions,
@@ -163,26 +181,15 @@ export function buildOverview(run) {
 }
 
 export function listDocs() {
-  const wanted = [
-    "README.md",
-    "AGENTS.md",
-    "ARCHITECTURE.md",
-    "IMPLEMENTATION_PLAN.md",
-    "NEXT_STEPS.md",
-    "PERSONA_AGENTS.md",
-    "SPRINT_CARD_TEMPLATE.md",
-    "VALIDATION_FLOW.md",
-    "VALIDATION_LOG.md",
-    "SETUP_COMMANDS.md",
-  ];
+  const roots = ["README.md", "AGENTS.md", "ARCHITECTURE.md", "IMPLEMENTATION_PLAN.md"];
   const files = walkFiles()
     .filter((f) => f.endsWith(".md") && !f.startsWith("node_modules") && !f.startsWith(".cursor"))
-    .filter((f) => wanted.includes(f) || f.startsWith("docs/") || /^(workflows|scripts|mcp|console|legacy)\/README\.md$/.test(f));
+    .filter((f) => roots.includes(f) || f.startsWith("docs/") || /^(workflows|scripts|mcp|console|infra)\/README\.md$/.test(f));
   return files
     .map((file) => {
       const text = readText(file);
       const title = (text.match(/^#\s+(.+)$/m) || [null, file])[1];
-      const area = file.startsWith("docs/archive") ? "Arquivo (fora do MVP)" : file.startsWith("docs/") ? "Governança" : file.includes("/") ? "Subprojetos" : "Raiz";
+      const area = file.startsWith("docs/") ? "Governança" : file.includes("/") ? "Subprojetos" : "Raiz";
       return { path: file, title, area };
     })
     .sort((a, b) => a.area.localeCompare(b.area) || a.path.localeCompare(b.path));

@@ -228,8 +228,8 @@ async function checkWorkflows() {
     details.push(
       detail(
         `workflows/${file}`,
-        file.includes(".bak") ? WARN : PASS,
-        `${nodes.length} nós · webhook ${webhook?.parameters?.path || "—"} · chama ${target.join(", ") || "nenhum serviço"}${file.includes(".bak") ? " · backup (usa /classify)" : ""}`,
+        PASS,
+        `${nodes.length} nós · webhook ${webhook?.parameters?.path || "—"} · chama ${target.join(", ") || "nenhum serviço"}`,
       ),
     );
     const dangling = Object.entries(wf.connections || {}).flatMap(([from, conn]) => [
@@ -238,7 +238,6 @@ async function checkWorkflows() {
     ]);
     if (dangling.length) details.push(detail(`  conexões quebradas em ${file}`, FAIL, [...new Set(dangling)].join(", ")));
 
-    if (file.includes(".bak")) continue;
     for (const node of nodes.filter((n) => n.type === "n8n-nodes-base.code")) {
       const code = node.parameters?.jsCode || "";
       const hits = [...new Set((code.match(new RegExp(BUSINESS_RULE_MARKERS, "gi")) || []).map((h) => h.toLowerCase()))];
@@ -265,7 +264,7 @@ async function checkWorkflows() {
     }
   }
   if (!callsTurn) details.push(detail("intent_workflow.json chama o serviço /turn", FAIL, "nenhum nó HTTP aponta para /turn"));
-  const warns = details.filter((d) => d.status === WARN && !d.label.includes(".bak")).length;
+  const warns = details.filter((d) => d.status === WARN).length;
   return { status: worst(details.map((d) => d.status)), summary: `${files.length} workflows auditados (estático)${warns ? `; ${warns} desvio(s) da regra "n8n só orquestra"` : ""}`, details };
 }
 
@@ -291,7 +290,7 @@ for path in sys.argv[1:]:
     out.append({"file": path, "services": list(services), "extra": extra, "no_image": bad})
 print(json.dumps(out))
 `;
-  const files = ["docker-compose.yml", "docker/sql/docker-compose.yml", "docker/sql/docker-compose.cloud-ready.yml"].filter((f) => exists(f));
+  const files = ["docker-compose.yml", "infra/docker/compose.target.yml"].filter((f) => exists(f));
   const result = await runPython(["-c", script, ...files]);
   let parsed;
   try {
@@ -391,16 +390,18 @@ async function checkHygiene() {
   for (const entry of [".env", "__pycache__/", "node_modules/"]) {
     details.push(detail(`.gitignore contém ${entry}`, gitignore.includes(entry) ? PASS : FAIL, ""));
   }
-  const rootPy = fs.readdirSync(ROOT).filter((f) => f.endsWith(".py"));
-  const unexpected = rootPy.filter((f) => f !== "intent_service.py");
-  details.push(
-    detail(
-      "Raiz sem scripts soltos (exceto o atalho intent_service.py)",
-      unexpected.length ? WARN : PASS,
-      unexpected.length ? unexpected.join(", ") : "ok",
-    ),
-  );
-  details.push(detail("legacy/ separado do código canônico", exists("legacy") ? PASS : WARN, exists("legacy") ? "legacy/ presente" : ""));
+  const layout = tryReadJson("docs", "governance", "layout.json");
+  if (!layout) {
+    details.push(detail("docs/governance/layout.json", FAIL, "contrato de estrutura ausente ou inválido"));
+  } else {
+    const missing = layout.required.filter((p) => !exists(p));
+    details.push(detail("Estrutura canônica completa", missing.length ? FAIL : PASS, missing.length ? `faltando: ${missing.join(", ")}` : `${layout.required.length} caminhos obrigatórios`));
+    const back = layout.forbidden.filter((p) => exists(p));
+    details.push(detail("Sem caminhos removidos (legacy, docker/, certs...)", back.length ? FAIL : PASS, back.length ? back.join(", ") : "ok"));
+    const tops = new Set(files.map((f) => f.split("/")[0]));
+    const extra = [...tops].filter((t) => !layout.root_allowed.includes(t));
+    details.push(detail("Raiz só com itens do contrato", extra.length ? WARN : PASS, extra.length ? `fora do contrato: ${extra.join(", ")}` : "ok"));
+  }
   const bad = details.filter((d) => d.status !== PASS).length;
   return { status: worst(details.map((d) => d.status)), summary: bad ? `${bad} ponto(s) de higiene a corrigir` : "Sem __pycache__ versionado, .gitignore ok, raiz limpa", details };
 }
@@ -424,23 +425,12 @@ async function checkDocs() {
   const sprints = fs.existsSync(abs("docs", "sprints")) ? fs.readdirSync(abs("docs", "sprints")).filter((f) => f.endsWith(".md")) : [];
   details.push(detail("Cards de sprint", sprints.length ? PASS : WARN, sprints.join(", ") || "nenhum"));
   const drift = [];
-  for (const file of ["README.md", "IMPLEMENTATION_PLAN.md", "ARCHITECTURE.md", "NEXT_STEPS.md"]) {
+  for (const file of ["README.md", "IMPLEMENTATION_PLAN.md", "ARCHITECTURE.md", "docs/governance/NEXT_STEPS.md"]) {
     if (/ipanema/i.test(readText(file))) drift.push(file);
   }
   details.push(detail("Sem resíduos de outro produto (ex.: 'Odontologia Ipanema')", drift.length ? WARN : PASS, drift.join(", ") || "ok"));
   const bad = details.filter((d) => d.status !== PASS).length;
   return { status: worst(details.map((d) => d.status)), summary: bad ? `${bad} divergência(s) de governança` : `${canonicalIds.size} problemas canônicos cobertos; sem resíduos de outros produtos`, details };
-}
-
-async function checkLegacy() {
-  if (!exists("legacy", "test_intent_classifier.py")) return { status: SKIP, summary: "Sem testes legados", details: [] };
-  const result = await runPython(["-m", "pytest", "-q", "-p", "no:cacheprovider"], { cwd: abs("legacy"), timeout: 60_000 });
-  const last = result.stdout.trim().split(/\r?\n/).pop() || result.stderr.slice(-200);
-  return {
-    status: result.code === 0 ? PASS : WARN,
-    summary: `Classificador legado: ${last}`,
-    details: [detail("Informativo", SKIP, "Regras do legado ainda não migradas; ver inventário no painel")],
-  };
 }
 
 function integrationCheck(integrationId) {
@@ -468,7 +458,6 @@ export const CHECKS = [
     derived: true,
     run: scenarioPhaseCheck(phase),
   })),
-  { id: "legacy:pytest", title: "Testes do código legado", group: "Testes", problems: [], run: checkLegacy },
   { id: "config:json", title: "Configuração (clinic, guardrails, voz, sessão)", group: "Configuração", problems: ["P2", "P3", "P4"], run: checkConfig },
   { id: "mcp:schemas", title: "Contratos MCP", group: "Configuração", problems: ["P10"], run: checkMcp },
   { id: "workflows:audit", title: "Auditoria dos workflows n8n", group: "Orquestração", problems: ["P10", "P6"], run: checkWorkflows },

@@ -4,7 +4,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from app.domains.secretary.turn import process_turn
-from scripts.n8n_grounded_reply import map_turn_to_webhook_response
+from app.interfaces.n8n.grounded_reply import map_turn_to_webhook_response
 
 
 def test_availability_without_calendar_asks_not_slot():

@@ -15,7 +15,10 @@ tests
 docs
 workflows
 scripts
-db
+infra
+console
+node_modules
+package.json
 *.md
 *.zip
 docker-compose*.yml

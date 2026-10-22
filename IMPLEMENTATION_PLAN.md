@@ -49,7 +49,7 @@ Mapa: `docs/canonical/CANONICAL_MAP.md`. Gates: `docs/governance/PHASE_GATES.md`
 ## Como o TPM usa isto
 
 1. Escolher um ID P*
-2. Abrir sprint card (`SPRINT_CARD_TEMPLATE.md`) com fase e gate
+2. Abrir sprint card (`docs/sprints/_TEMPLATE.md`) com fase e gate
 3. Atribuir `dev-agentic` + `qa-agentic` (e voz/security se P1/P9)
 4. Dev só implementa contra MCP/schema existente
 5. QA valida grounding (não só “o workflow rodou”)

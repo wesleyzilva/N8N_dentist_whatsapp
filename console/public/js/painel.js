@@ -45,6 +45,29 @@ function roadmap(o) {
   );
 }
 
+const STEP_LABEL = { done: "Concluído", next: "Próximo passo", planned: "Planejado" };
+const stepColor = { done: "green", next: "blue", planned: "gray" };
+
+function steps(o) {
+  return h(
+    "div",
+    { class: "grid phases" },
+    o.steps.map((step) => {
+      const pct = step.manualTotal ? Math.round((step.manualDone / step.manualTotal) * 100) : 100;
+      return h(
+        "div",
+        { class: `card phase ${step.color} ${step.current ? "current" : ""}` },
+        h("div", {}, h("small", {}, `PASSO ${step.id}`), h("h3", {}, step.name)),
+        h("div", {}, colorPill(stepColor[step.status] || "gray", STEP_LABEL[step.status] || step.status), " ", step.ready ? colorPill("green", "pronto") : null),
+        h("div", { class: "muted tiny" }, step.goal),
+        h("div", {}, h("div", { class: "muted tiny" }, `Itens manuais ${step.manualDone}/${step.manualTotal}`), h("div", { class: "bar" }, h("i", { style: `width:${pct}%` }))),
+        step.automated.length ? h("ul", {}, step.automated.map((a) => h("li", { title: a.summary }, `${STATUS[a.status]?.label || a.status}: ${a.title}`))) : null,
+        h("details", {}, h("summary", { class: "tiny muted" }, "Checklist e comandos"), h("ul", {}, step.manual.map((m) => h("li", {}, `${m.done ? "☑" : "☐"} ${m.label}`))), h("ul", { class: "howto mono" }, step.how.map((c) => h("li", {}, c)))),
+      );
+    }),
+  );
+}
+
 function problemsTable(o) {
   return h(
     "div",
@@ -155,6 +178,7 @@ export function renderPainel(o) {
     "div",
     {},
     kpis(o),
+    section("Passo a passo da execução", steps(o), "contorno azul = passo atual · avança quando os itens manuais e as checagens ficam verdes"),
     section("Roadmap por fase", roadmap(o), "borda = evidência automática · contorno verde = fase atual"),
     section("Problemas canônicos P1–P10", problemsTable(o), "declarado (status.json) × código verificado (testes, cenários, config) × ambiente (integrações)"),
     section("Pontos de atenção", findings(o)),

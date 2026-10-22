@@ -36,7 +36,6 @@ services:
     volumes:
       - n8n-data:/home/node/.n8n
       - ./workflows:/workflows:ro
-      - ./certs/ca.pem:/certs/ca.pem:ro
     depends_on:
       - postgres
     restart: unless-stopped

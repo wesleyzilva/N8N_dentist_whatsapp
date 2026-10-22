@@ -92,6 +92,7 @@ describe("visão do TPM", () => {
     assert.equal(data.phases.length, 7);
     assert.ok(data.nextActions.length > 0);
     assert.ok(data.inventory.length > 0);
+    assert.ok(data.steps.length > 0 && data.steps.some((s) => s.current));
     assert.ok(data.raid.length > 0);
   });
 

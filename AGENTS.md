@@ -15,7 +15,7 @@ Não misture fidelidade/VIPpocket com a secretária WhatsApp. A prática é **ha
 | LGPD / risco | `.cursor/skills/security-agentic` | políticas, logs, secrets hygiene | enfraquecer opt-out |
 | Docker / n8n / env | `.cursor/skills/devops-agentic` | compose, scripts, `.env.example` | commitar `.env` |
 
-Stakeholders simulados (dona, secretária humana, paciente, compliance): `PERSONA_AGENTS.md`. Eles opinam; não implementam.
+Stakeholders simulados (dona, secretária humana, paciente, compliance): `docs/governance/PERSONA_AGENTS.md`. Eles opinam; não implementam.
 
 ## Runtime (WhatsApp)
 

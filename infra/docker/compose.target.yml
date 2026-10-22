@@ -1,6 +1,6 @@
 # Secretária WhatsApp: stack "local primeiro, pronta para a nuvem".
 #
-# Uso:  docker compose -f docker-compose.cloud-ready.yml up -d --build
+# Uso:  docker compose -f infra/docker/compose.target.yml --env-file .env up -d --build
 #
 # Regras deste arquivo (para o mesmo compose rodar no Docker Desktop e numa VM Linux):
 #   * tudo que muda de ambiente vem do .env (nada de senha ou URL fixa aqui);
@@ -30,14 +30,14 @@ services:
 
   intent-service:
     build:
-      context: .
-      dockerfile: Dockerfile.intent
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.intent
     environment:
       PORT: 8001
       TZ: ${TZ:-America/Sao_Paulo}
     ports:
       # Só na própria máquina, para você testar com curl. O n8n usa a rede interna.
-      # Se rodar `python intent_service.py` no host, pare-o antes (mesma porta 8001).
+      # Se rodar `python -m app.interfaces.http.intent_service` no host, pare-o antes (mesma porta 8001).
       - "127.0.0.1:8001:8001"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/healthz', timeout=3)"]
@@ -60,7 +60,7 @@ services:
       DB_POSTGRESDB_USER: ${POSTGRES_USER:-n8n}
       DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}
       # Chave que criptografa as credenciais salvas no n8n. Precisa ser a MESMA do n8n atual
-      # (veja docs/LOCAL_TO_CLOUD.md) e acompanhar o banco para qualquer ambiente novo.
+      # (veja infra/LOCAL_TO_CLOUD.md) e acompanhar o banco para qualquer ambiente novo.
       N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:?defina N8N_ENCRYPTION_KEY no .env}
       N8N_HOST: ${N8N_HOST:-localhost}
       N8N_PORT: 5678
@@ -73,7 +73,7 @@ services:
       TZ: ${TZ:-America/Sao_Paulo}
     volumes:
       - n8n-data:/home/node/.n8n
-      - ./workflows:/workflows:ro
+      - ../../workflows:/workflows:ro
     depends_on:
       postgres:
         condition: service_healthy

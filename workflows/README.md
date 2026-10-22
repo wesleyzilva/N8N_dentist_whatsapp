@@ -4,7 +4,6 @@ Orquestração do canal. Regras de unidade, agenda e tom ficam no Python (`POST 
 
 ## Fluxos
 - `intent_workflow.json`: webhook `intent-webhook` → `http://host.docker.internal:8001/turn` → `reply_text` grounded.
-- `intent_workflow_simple.json`: o mesmo contrato, payload fixo para smoke test.
 
 Payload esperado no webhook:
 
@@ -18,4 +17,4 @@ Se `can_assert_facts` for false, o nó `Grounded Reply` marca `next` como `ask` 
 1. Abra o n8n.
 2. Vá para Workflows > Import from JSON.
 3. Selecione `intent_workflow.json`.
-4. Suba `python intent_service.py` (porta 8001) antes de ativar.
+4. Suba `python -m app.interfaces.http.intent_service` (porta 8001) ou o container `intent-service` antes de ativar.
