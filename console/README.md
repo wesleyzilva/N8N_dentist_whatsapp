@@ -20,7 +20,7 @@ Primeira vez: `pip install -r requirements-dev.txt`.
 | Simulador de conversa | Chat estilo WhatsApp. Escolha o número (DDD 46/16/outro), o calendário (vazio, erro, fixture) e o alvo (Python direto ou webhook n8n). Clique numa resposta para ver o contrato: intent, unidade, evidências, claims, escalonamento, tool_status. O lint avisa se houver horário ou cidade da dra sem evidência. "Copiar como cenário" gera JSON para a suíte |
 | Cenários de teste | Suíte de conversas (`tests/scenarios/conversations.json`): em processo, contra o serviço HTTP ou contra o n8n. "Reproduzir no simulador" repete o diálogo |
 | Validações | pytest, cenários, configuração, MCP, workflows n8n (auditoria estática), Docker Compose, segredos, `.env`, higiene, governança, integrações |
-| Integrações | Probes reais: serviço Python, n8n, webhook, Evolution API, PostgreSQL, Docker, Google Calendar, Gemini |
+| Integrações | Probes reais: serviço Python, n8n, webhook, WhatsApp Cloud API (Meta), PostgreSQL, Docker, Google Calendar, Gemini |
 | Documentos | Mapa canônico, plano, governança e READMEs |
 
 ## Onde o TPM edita
@@ -46,7 +46,6 @@ Primeira vez: `pip install -r requirements-dev.txt`.
 | `CONSOLE_PORT` | 4173 |
 | `SERVICE_PORT` / `SERVICE_URL` | 8001 / `http://127.0.0.1:8001` |
 | `N8N_URL` / `N8N_WEBHOOK_PATH` | `http://localhost:5678` / `/webhook/intent-webhook` |
-| `EVOLUTION_URL` | `EVOLUTION_API_URL` do `.env` ou `http://localhost:8080` |
 | `PYTHON` | detecta `python3`, `python`, `py` |
 
 ## Segurança

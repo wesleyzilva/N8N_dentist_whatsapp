@@ -124,6 +124,27 @@ async function checkScenarios() {
   };
 }
 
+async function checkCorpus() {
+  const result = await runPython(["-m", "scripts.run_scenarios", "--suite", "corpus", "--json"], { timeout: 90_000 });
+  let report;
+  try {
+    report = JSON.parse(result.stdout);
+  } catch {
+    return { status: FAIL, summary: "Runner do corpus falhou", details: [detail("saída", FAIL, (result.stdout + result.stderr).slice(-800))] };
+  }
+  const s = report.summary;
+  const failing = report.scenarios.filter((sc) => sc.status !== "passed" && sc.status !== "skipped");
+  return {
+    status: failing.length ? FAIL : PASS,
+    summary: `${s.passed} de ${s.total} mensagens/jornadas simuladas passaram`,
+    details: [
+      ...Object.entries(report.groups).map(([name, g]) => detail(name, g.passed === g.total ? PASS : FAIL, `${g.passed}/${g.total}`)),
+      ...failing.slice(0, 20).map((sc) => detail(`${sc.id} — ${sc.title}`, FAIL, sc.error || "veja a aba Cenários")),
+    ],
+    data: { summary: s, groups: report.groups, failing: failing.map((sc) => sc.id) },
+  };
+}
+
 function scenarioPhaseCheck(phase) {
   return async (ctx) => {
     const base = ctx.results.scenarios;
@@ -348,10 +369,10 @@ async function checkSecrets() {
   };
 }
 
-const ENV_REQUIRED = new Set(["EVOLUTION_API_KEY"]);
+const ENV_REQUIRED = new Set(["META_VERIFY_TOKEN", "META_APP_SECRET"]);
 const ENV_GROUPS = [
   [/^(N8N_|DB_|WEBHOOK_URL|TZ$|PORT$)/, "n8n/serviço (tem padrão no compose)"],
-  [/^(EVOLUTION_|WHATSAPP_)/, "WhatsApp"],
+  [/^(META_|WHATSAPP_)/, "WhatsApp (Meta Cloud API)"],
   [/^(GOOGLE_)/, "Fase 3 — Google Calendar"],
   [/^(OPENAI_|LLM_|GEMINI_)/, "Opcional — LLM"],
 ];
@@ -450,6 +471,7 @@ function integrationCheck(integrationId) {
 export const CHECKS = [
   { id: "pytest", title: "Testes automatizados (pytest)", group: "Testes", problems: [], run: checkPytest },
   { id: "scenarios", title: "Suíte de conversas (anti-alucinação)", group: "Testes", problems: ["P1", "P2", "P3", "P4", "P5", "P7", "P8", "P9"], run: checkScenarios },
+  { id: "corpus", title: "Corpus simulado de mensagens (variedade e fallback)", group: "Testes", problems: ["P1", "P2", "P8"], run: checkCorpus },
   ...[1, 2, 3, 5, 6].map((phase) => ({
     id: `scenarios:phase${phase}`,
     title: `Cenários — gate da fase ${phase}`,
@@ -469,7 +491,7 @@ export const CHECKS = [
   { id: "integration:python-service", title: "Integração: serviço Python /turn", group: "Integrações", problems: ["P10"], run: integrationCheck("python-service") },
   { id: "integration:n8n", title: "Integração: n8n", group: "Integrações", problems: ["P10"], run: integrationCheck("n8n") },
   { id: "integration:n8n-webhook", title: "Integração: webhook n8n", group: "Integrações", problems: ["P1", "P10"], run: integrationCheck("n8n-webhook") },
-  { id: "integration:evolution-api", title: "Integração: Evolution API", group: "Integrações", problems: ["P1", "P8"], run: integrationCheck("evolution-api") },
+  { id: "integration:whatsapp-meta", title: "Integração: WhatsApp Cloud API (Meta)", group: "Integrações", problems: ["P1", "P8"], run: integrationCheck("whatsapp-meta") },
   { id: "integration:google-calendar", title: "Integração: Google Calendar", group: "Integrações", problems: ["P4", "P5"], run: integrationCheck("google-calendar") },
 ];
 

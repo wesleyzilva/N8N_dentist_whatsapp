@@ -5,21 +5,60 @@ import { replay } from "./simulador.js";
 const statusPill = (status) => pill(status === "passed" ? "pass" : status === "skipped" ? "skip" : "fail", { passed: "Passou", failed: "Falhou", error: "Erro", skipped: "Pulado" }[status] || status);
 
 export async function renderCenarios(root, { goto }) {
-  const { data } = await api.get("/api/scenarios");
+  let suite = sessionStorage.getItem("suite") || "conversations";
+  let data = (await api.get(`/api/scenarios?suite=${suite}`)).data;
   let report = null;
+  const suiteBar = h("div", { style: "display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center" });
+  const groupsBox = h("div", {});
   const holder = h("div", {});
   const summary = h("div", { class: "muted", style: "margin: 0 0 12px" });
 
   async function run(target) {
     summary.textContent = "Executando…";
-    const { data: result, ok } = await api.post("/api/scenarios/run", { target });
+    const { data: result, ok } = await api.post("/api/scenarios/run", { target, suite });
     if (!ok) {
       summary.textContent = `Erro: ${result.error} ${result.detail || ""}`;
       return;
     }
     report = result;
+    drawGroups();
     draw();
     toast(`${result.summary.passed}/${result.summary.total} cenários passaram (${result.target})`);
+  }
+
+  const SUITES = { conversations: "Conversas-chave (gates)", corpus: "Corpus simulado (variedade)", all: "Tudo" };
+
+  function drawSuiteBar() {
+    suiteBar.replaceChildren(
+      h("span", { class: "muted tiny" }, "Suíte:"),
+      ...Object.entries(SUITES).map(([key, label]) =>
+        h("button", { class: `btn small ${suite === key ? "primary" : "ghost"}`, onClick: async () => {
+          suite = key;
+          sessionStorage.setItem("suite", key);
+          data = (await api.get(`/api/scenarios?suite=${key}`)).data;
+          report = null;
+          summary.textContent = "";
+          drawSuiteBar();
+          drawGroups();
+          draw();
+        } }, label),
+      ),
+    );
+  }
+
+  function drawGroups() {
+    if (!report?.groups || !Object.keys(report.groups).length) {
+      groupsBox.replaceChildren();
+      return;
+    }
+    groupsBox.replaceChildren(
+      h("div", { class: "card table-wrap", style: "margin-bottom:12px" },
+        h("table", {},
+          h("thead", {}, h("tr", {}, ["Grupo", "Acertos", "Total"].map((c) => h("th", {}, c)))),
+          h("tbody", {}, Object.entries(report.groups).map(([name, g]) => h("tr", {}, h("td", {}, name), h("td", {}, colorPill(g.passed === g.total ? "green" : "red", `${g.passed}`)), h("td", {}, String(g.total))))),
+        ),
+      ),
+    );
   }
 
   function draw() {
@@ -38,7 +77,7 @@ export async function renderCenarios(root, { goto }) {
           h(
             "div",
             { class: "detail-list" },
-            h("div", { class: "muted tiny" }, `Fase ${sc.phase} · ${sc.problems.join(", ")} · calendário: ${sc.calendar_mode} · paciente ${sc.number}`),
+            h("div", { class: "muted tiny" }, `${sc.group ? `grupo ${sc.group} · ` : ""}Fase ${sc.phase} · ${sc.problems.join(", ")} · calendário: ${sc.calendar_mode} · paciente ${sc.number}`),
             result?.error ? h("div", { class: "banner red" }, result.error) : null,
             result?.reason ? h("div", { class: "banner yellow" }, result.reason) : null,
             (result?.turns || sc.turns).map((turn, i) => {
@@ -59,7 +98,8 @@ export async function renderCenarios(root, { goto }) {
   }
 
   root.append(
-    h("p", { class: "muted", style: "margin-bottom:12px" }, "Mesma suíte do pytest (tests/scenarios/conversations.json). Inclui os 3 gates anti-alucinação de PHASE_GATES.md."),
+    h("p", { class: "muted", style: "margin-bottom:12px" }, "Mesmas suítes do pytest: conversations.json (gates anti-alucinação de PHASE_GATES.md) e corpus.json (mensagens variadas simuladas: saudações, erros de digitação, preço, mídia, injeção, fora do mapa e jornadas)."),
+    suiteBar,
     h(
       "div",
       { style: "display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px" },
@@ -68,7 +108,9 @@ export async function renderCenarios(root, { goto }) {
       h("button", { class: "btn", onClick: () => run("n8n") }, "Contra o n8n (ponta a ponta)"),
     ),
     summary,
+    groupsBox,
     holder,
   );
+  drawSuiteBar();
   draw();
 }

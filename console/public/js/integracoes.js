@@ -17,7 +17,7 @@ function card(item, redraw) {
           item.details.flatMap((d) => [h("span", { class: "k" }, d.label), h("span", { style: `color: var(--${rowColor[d.status] === "gray" ? "muted" : rowColor[d.status] || "ink"})` }, d.value)]),
         )
       : null,
-    item.action === "gemini-ping"
+    item.action
       ? h(
           "div",
           {},
@@ -28,12 +28,12 @@ function card(item, redraw) {
               onClick: async (event) => {
                 event.target.disabled = true;
                 pingOut.textContent = "testando…";
-                const { data } = await api.post("/api/integrations/gemini-ping");
+                const { data } = await api.post(`/api/integrations/${item.action}`);
                 pingOut.textContent = `${data.ok ? "✔" : "✖"} ${data.message}`;
                 event.target.disabled = false;
               },
             },
-            "Testar conexão (sem gastar tokens)",
+            "Testar conexão (não envia mensagem nem gasta tokens)",
           ),
           pingOut,
         )

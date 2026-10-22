@@ -3,7 +3,7 @@
 Tudo que sobe fora do Python: containers e banco. O n8n só orquestra; regras ficam em `app/` e `config/`.
 
 ```
-docker-compose.yml          (raiz) stack atual: postgres + n8n + Evolution API
+docker-compose.yml          (raiz) stack atual: postgres + n8n (WhatsApp = Meta Cloud API, sem container)
 infra/
   docker/
     compose.target.yml      compose alvo: postgres (healthcheck) + intent-service + n8n, sem segredo fixo
@@ -15,7 +15,7 @@ infra/
 
 ## Como seguir (passos E3 e E4 do Painel)
 
-1. E3 — unificar os compose (A8): promover `compose.target.yml`, acrescentar a Evolution API, exigir `POSTGRES_PASSWORD`, `N8N_ENCRYPTION_KEY` e `EVOLUTION_API_KEY` no `.env`.
+1. E3 — unificar os compose (A8): promover `compose.target.yml`, exigir `POSTGRES_PASSWORD` e `N8N_ENCRYPTION_KEY` no `.env`.
 2. E3 — construir a imagem do serviço e conferir `healthz`.
 3. E4 — aplicar `infra/db/migrations/001_secretaria_fase1.sql` e criar a credencial Postgres no n8n.
 

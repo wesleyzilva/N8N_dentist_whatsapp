@@ -3,13 +3,25 @@
   "title": "whatsapp",
   "tools": {
     "send_text": {
-      "description": "Envia texto já grounded. Não gera conteúdo.",
+      "description": "Envia texto já grounded pela Meta WhatsApp Cloud API (POST /v{ver}/{phone_number_id}/messages, Bearer META_ACCESS_TOKEN). Não gera conteúdo. O payload pronto vem em replies[].send_payload de POST /meta/webhook.",
       "arguments": {
         "type": "object",
-        "required": ["to", "body"],
+        "required": [
+          "to",
+          "body"
+        ],
         "properties": {
-          "to": { "type": "string" },
-          "body": { "type": "string", "maxLength": 900 }
+          "to": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 900
+          },
+          "in_reply_to": {
+            "type": "string",
+            "description": "wamid da mensagem recebida (vira context.message_id)"
+          }
         }
       }
     },
@@ -17,7 +29,21 @@
       "description": "Escala para humana com resumo factual (sem claims bloqueadas).",
       "arguments": {
         "type": "object",
-        "required": ["to_internal", "reason", "context"]
+        "required": [
+          "to_internal",
+          "reason",
+          "context"
+        ]
+      }
+    },
+    "receive_webhook": {
+      "description": "Webhook da Meta (entry[].changes[].value.messages[]). Serviço Python valida X-Hub-Signature-256, deduplica por wamid e devolve replies[] com send_payload e handoff.",
+      "arguments": {
+        "type": "object",
+        "required": [
+          "object",
+          "entry"
+        ]
       }
     }
   }

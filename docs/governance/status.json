@@ -28,7 +28,7 @@
         {"label": "POST /turn devolve contrato canônico", "done": true},
         {"label": "Workflow importado e ativo no n8n", "done": false},
         {"label": "POST no webhook n8n devolve reply_text do /turn", "done": false},
-        {"label": "Provedor WhatsApp real definido (Evolution API ou Meta Cloud)", "done": false}
+        {"label": "Provedor WhatsApp definido: Meta WhatsApp Cloud API (decisão do Wesley)", "done": true}
       ]
     },
     {
@@ -128,7 +128,7 @@
     {
       "id": "E1", "name": "Código e testes verdes", "status": "done",
       "goal": "Regras de domínio, grounding e voz provadas sem Docker.",
-      "checks": ["pytest", "scenarios", "config:json", "mcp:schemas", "secrets:scan"],
+      "checks": ["pytest", "scenarios", "corpus", "config:json", "mcp:schemas", "secrets:scan"],
       "how": ["pytest", "python -m scripts.run_scenarios"],
       "manual": [
         {"label": "15 cenários anti-alucinação passam", "done": true}
@@ -146,12 +146,12 @@
     },
     {
       "id": "E3", "name": "Docker: stack local", "status": "next",
-      "goal": "postgres + n8n + serviço Python + Evolution API subindo com um comando, sem segredo no git.",
-      "checks": ["compose:valid", "integration:n8n", "integration:evolution-api"],
+      "goal": "postgres + n8n + serviço Python subindo com um comando, sem segredo no git. O WhatsApp é a Meta Cloud API (SaaS, sem container).",
+      "checks": ["compose:valid", "integration:n8n"],
       "how": ["docker compose up -d", "docker compose ps"],
       "manual": [
         {"label": "Decidir compose único: promover infra/docker/compose.target.yml a docker-compose.yml (A8)", "done": false},
-        {"label": ".env com EVOLUTION_API_KEY, POSTGRES_PASSWORD e N8N_ENCRYPTION_KEY novos (A3)", "done": false},
+        {"label": ".env com POSTGRES_PASSWORD e N8N_ENCRYPTION_KEY novos (A3)", "done": false},
         {"label": "Imagem do serviço Python (infra/docker/Dockerfile.intent) construída e healthz verde", "done": false},
         {"label": "Containers saudáveis: docker compose ps", "done": false}
       ]
@@ -179,12 +179,14 @@
       ]
     },
     {
-      "id": "E6", "name": "WhatsApp (Evolution API)", "status": "planned",
-      "goal": "Mensagem real entra pelo Evolution, passa pelo n8n e volta como texto da secretária.",
-      "checks": ["integration:evolution-api"],
-      "how": ["Criar instância na Evolution API e ler o QR code", "Apontar o webhook da instância para o n8n"],
+      "id": "E6", "name": "WhatsApp (Meta Cloud API)", "status": "planned",
+      "goal": "Mensagem real entra pelo webhook da Meta, passa pelo n8n e /turn e volta como texto da secretária (send_payload).",
+      "checks": ["integration:whatsapp-meta"],
+      "how": ["Meta for Developers > criar app > WhatsApp > número de teste", "Webhook: URL pública do n8n (Webhook com Raw Body) + META_VERIFY_TOKEN, assinar o campo messages", "n8n: POST /meta/webhook no serviço Python e enviar cada replies[].send_payload para graph.facebook.com com META_ACCESS_TOKEN", "Testar local: npm run console > Integrações (GET verify) e Simulador"],
       "manual": [
-        {"label": "Provedor definido (Evolution API ou Meta Cloud)", "done": false},
+        {"label": "Provedor definido: Meta Cloud API", "done": true},
+        {"label": "META_VERIFY_TOKEN, META_APP_SECRET, META_ACCESS_TOKEN e META_PHONE_NUMBER_ID no .env (nunca no git)", "done": false},
+        {"label": "Webhook verificado pela Meta (GET hub.challenge)", "done": false},
         {"label": "Round-trip real validado com número de teste", "done": false}
       ]
     },
@@ -212,12 +214,12 @@
   "next_actions": [
     {"id": "A1", "priority": "alta", "problem": "P10", "phase": 1, "owner": "DevOps", "title": "Subir stack (docker compose up), importar workflows/intent_workflow.json e validar o webhook no Console (aba Integrações)"},
     {"id": "A2", "priority": "alta", "problem": "P6", "phase": 4, "owner": "Architect", "title": "Decidir: remover do canvas n8n a triagem/slots/reserva (Code node 'Triagem e Horários Próximos') e mover para app/ conforme regra n8n-workflows"},
-    {"id": "A3", "priority": "alta", "problem": "P9", "phase": 6, "owner": "Security", "title": "Rotacionar a chave da Evolution API que esteve no git e exigir N8N_ENCRYPTION_KEY no .env (hoje o compose tem valor padrão)"},
+    {"id": "A3", "priority": "alta", "problem": "P9", "phase": 6, "owner": "Security", "title": "Rotacionar a chave da Evolution API que esteve no git (serviço removido; a chave antiga continua no histórico) e exigir N8N_ENCRYPTION_KEY no .env (hoje o compose tem valor padrão)"},
     {"id": "A4", "priority": "media", "problem": "P4", "phase": 2, "owner": "TPM", "title": "Obter calendar_id distinto por unidade (hoje Pato Branco e São Carlos usam o mesmo) e endereço real das unidades"},
     {"id": "A5", "priority": "media", "problem": "P5", "phase": 3, "owner": "Dev", "title": "Implementar GoogleCalendarGateway real (freebusy) atrás do protocolo CalendarGateway; o fluxo OAuth antigo está no git (commit a0048aa, legacy/auth_e_agenda.py)"},
     {"id": "A6", "priority": "media", "problem": "P8", "phase": 5, "owner": "Dev", "title": "Separar motivos de escalonamento (clinical, human_requested, complaint); hoje pedido de humana sai como 'clinical'"},
     {"id": "A7", "priority": "baixa", "problem": "P7", "phase": 5, "owner": "Dev", "title": "Palavra 'dor' casa por substring (ex.: 'adorei'); trocar por limite de palavra mantendo viés seguro"},
-    {"id": "A8", "priority": "alta", "problem": "P10", "phase": 1, "owner": "DevOps", "title": "Unificar o compose: promover infra/docker/compose.target.yml (postgres com healthcheck, intent-service, n8n sem segredo fixo) e acrescentar a Evolution API"},
+    {"id": "A8", "priority": "alta", "problem": "P10", "phase": 1, "owner": "DevOps", "title": "Unificar o compose: promover infra/docker/compose.target.yml (postgres com healthcheck, intent-service, n8n sem segredo fixo) (sem Evolution: o WhatsApp é a Meta Cloud API)"},
     {"id": "A9", "priority": "media", "problem": "P9", "phase": 1, "owner": "Architect", "title": "Confirmar o modelo de dados: só conversation_state e processed_messages no banco secretaria; o schema 'clinica' (pacientes/agendamentos) foi removido por duplicar a agenda do Google Calendar"}
   ],
   "inventory": [
@@ -228,8 +230,8 @@
     {"path": "console/", "kind": "canônico", "decision": "manter", "note": "TPM Console local (Node, sem dependências)."},
     {"path": "mcp/", "kind": "canônico", "decision": "manter", "note": "Contratos para Cursor e runtime."},
     {"path": "workflows/intent_workflow.json", "kind": "orquestração", "decision": "migrar", "note": "Webhook→/turn ok; Code node com regras de negócio e reserva viola a regra do n8n (A2)."},
-    {"path": "docker-compose.yml", "kind": "infra", "decision": "substituir", "note": "postgres + n8n + Evolution API. Funciona, mas tem senha e chave padrão; será substituído pelo compose alvo (A8)."},
-    {"path": "infra/docker/compose.target.yml", "kind": "infra", "decision": "promover", "note": "Compose alvo (postgres, intent-service, n8n) sem segredo fixo. Falta a Evolution API."},
+    {"path": "docker-compose.yml", "kind": "infra", "decision": "substituir", "note": "postgres + n8n. Funciona, mas tem senha e chave padrão; será substituído pelo compose alvo (A8)."},
+    {"path": "infra/docker/compose.target.yml", "kind": "infra", "decision": "promover", "note": "Compose alvo (postgres, intent-service, n8n) sem segredo fixo. O WhatsApp é a Meta Cloud API (sem container)."},
     {"path": "infra/docker/Dockerfile.intent", "kind": "infra", "decision": "manter", "note": "Imagem do serviço Python (python -m app.interfaces.http.intent_service)."},
     {"path": "infra/db/migrations/", "kind": "infra", "decision": "manter", "note": "Banco secretaria: conversation_state e processed_messages."},
     {"path": "infra/LOCAL_TO_CLOUD.md", "kind": "infra", "decision": "manter", "note": "Passo a passo de migração e checklist de nuvem."},

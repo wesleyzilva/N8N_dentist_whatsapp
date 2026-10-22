@@ -47,7 +47,7 @@ def render_reply(
     if "availability_slots" in blocked or (
         intent == "AVAILABILITY" and "availability_slots" not in allowed
     ):
-        return templates["ask_availability"]
+        return _with_unit_question(templates["ask_availability"], templates, session, city)
 
     if "availability_slots" in allowed:
         slots = _format_slots(evidence.get("availability_slots"))
@@ -67,12 +67,14 @@ def render_reply(
         return templates["ask_presence"]
 
     text = templates.get(intent) or templates["UNKNOWN"]
-    if (
-        not session.get("unit_confirmed")
-        and intent not in {"UNKNOWN", "AVAILABILITY", "LOCATION"}
-    ):
-        if city:
-            text = f"{text} {templates['ask_unit_hypothesis'].format(city=city)}"
-        else:
-            text = f"{text} {templates['ask_unit']}"
+    if intent in {"CONFIRM", "RESCHEDULE", "CANCEL"}:
+        text = _with_unit_question(text, templates, session, city)
     return text
+
+
+def _with_unit_question(text: str, templates: Dict[str, str], session: Dict[str, Any], city: Optional[str]) -> str:
+    if session.get("unit_confirmed"):
+        return text
+    if city:
+        return f"{text} {templates['ask_unit_hypothesis'].format(city=city)}"
+    return f"{text} {templates['ask_unit']}"

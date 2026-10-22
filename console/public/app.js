@@ -3,6 +3,7 @@ import { renderCenarios } from "./js/cenarios.js";
 import { renderDocs } from "./js/docs.js";
 import { h, pill, timeAgo, toast } from "./js/dom.js";
 import { renderIntegracoes } from "./js/integracoes.js";
+import { renderLogs } from "./js/logs.js";
 import { renderPainel } from "./js/painel.js";
 import { renderSimulador, sim } from "./js/simulador.js";
 import { renderValidacao } from "./js/validacao.js";
@@ -11,8 +12,9 @@ const VIEWS = {
   painel: ["Painel do TPM", "Fases, problemas P1–P10, evidência automática e próximas ações."],
   simulador: ["Simulador de conversa", "Converse como o paciente e veja o contrato (intent, unidade, evidências, claims, escalonamento)."],
   cenarios: ["Cenários de teste", "Suíte de conversas com expectativas de grounding; roda em processo, no HTTP ou no n8n."],
+  logs: ["Logs de turnos", "O que a secretária decidiu em cada mensagem, passo a passo (serviço iniciado pelo Console)."],
   validacao: ["Validações", "Testes, configuração, workflows, segredos, estrutura e integrações."],
-  integracoes: ["Integrações", "Probes locais: serviço Python, n8n, webhook, Evolution API, Docker, Google, Gemini."],
+  integracoes: ["Integrações", "Probes locais: serviço Python, n8n, webhook, WhatsApp Meta, Docker, Google, Gemini."],
   docs: ["Documentos", "Mapa canônico, plano, governança e READMEs do repositório."],
 };
 
@@ -57,6 +59,9 @@ async function render() {
       break;
     case "cenarios":
       await renderCenarios(container, ctx);
+      break;
+    case "logs":
+      await renderLogs(container);
       break;
     case "validacao":
       await renderValidacao(container, ctx);

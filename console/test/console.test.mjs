@@ -6,7 +6,6 @@ const SERVICE_PORT = 18001 + Math.floor(Math.random() * 500);
 const FAKE_N8N_PORT = 19001 + Math.floor(Math.random() * 500);
 process.env.SERVICE_PORT = String(SERVICE_PORT);
 process.env.N8N_URL = `http://127.0.0.1:${FAKE_N8N_PORT}`;
-process.env.EVOLUTION_URL = "http://127.0.0.1:1";
 
 const { createServer } = await import("../server.mjs");
 const { parseJunit } = await import("../lib/checks.mjs");
@@ -108,7 +107,7 @@ describe("integrações", () => {
     const byId = Object.fromEntries(items.map((i) => [i.id, i]));
     assert.equal(byId.n8n.status, "up");
     assert.equal(byId["n8n-webhook"].status, "up");
-    assert.equal(byId["evolution-api"].status, "down");
+    assert.ok(["not_configured", "manual"].includes(byId["whatsapp-meta"].status));
     assert.equal(byId["google-calendar"].status, "not_configured");
   });
 

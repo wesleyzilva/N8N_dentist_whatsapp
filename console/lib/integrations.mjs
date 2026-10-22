@@ -4,7 +4,6 @@ import { serviceStatus } from "./service.mjs";
 
 export const N8N_URL = (process.env.N8N_URL || "http://localhost:5678").replace(/\/$/, "");
 export const N8N_WEBHOOK_PATH = process.env.N8N_WEBHOOK_PATH || "/webhook/intent-webhook";
-export const EVOLUTION_URL = (process.env.EVOLUTION_URL || envValue("EVOLUTION_API_URL") || "http://localhost:8080").replace(/\/$/, "");
 
 const row = (label, value, status = "info") => ({ label, value, status });
 const envRow = (name) => {
@@ -75,38 +74,60 @@ async function n8nWebhook(n8nUp) {
   };
 }
 
-async function evolution() {
-  const probe = await httpProbe(`${EVOLUTION_URL}/`);
-  const base = {
-    id: "evolution-api",
-    name: "Evolution API (WhatsApp)",
+const META_GRAPH = "https://graph.facebook.com";
+const META_API_VERSION = process.env.META_API_VERSION || envValue("META_API_VERSION") || "v21.0";
+
+async function whatsappMeta() {
+  const names = ["META_VERIFY_TOKEN", "META_APP_SECRET", "META_ACCESS_TOKEN", "META_PHONE_NUMBER_ID"];
+  const ready = names.every((name) => {
+    const value = envValue(name);
+    return value && !isPlaceholder(value);
+  });
+  const details = names.map(envRow);
+  const service = await serviceStatus();
+  if (service.running) {
+    const health = await httpProbe(`${service.url}/healthz`, { timeout: 1500 });
+    const meta = health.json?.meta_webhook;
+    if (meta) {
+      details.push(row("Serviço: GET /meta/webhook (verificação)", meta.verify_token_configured ? "token configurado" : "sem META_VERIFY_TOKEN", meta.verify_token_configured ? "ok" : "warn"));
+      details.push(row("Serviço: assinatura X-Hub-Signature-256", meta.signature_required ? "exigida" : "não exigida (só aceito em simulação)", meta.signature_required ? "ok" : "warn"));
+    }
+  } else {
+    details.push(row("Serviço Python", "fora do ar; inicie para testar /meta/webhook", "warn"));
+  }
+  return {
+    id: "whatsapp-meta",
+    name: "WhatsApp Cloud API (Meta)",
     problems: ["P1", "P8"],
     phase: 1,
+    status: ready ? "manual" : "not_configured",
+    summary: ready
+      ? "Credenciais definidas. 'Testar conexão' consulta o número no Graph API (não envia mensagem)."
+      : "Faltam credenciais da Meta no .env. O fluxo já é testável sem elas: POST /meta/webhook com payloads de exemplo (testes e simulação).",
+    details,
+    action: ready ? "meta-ping" : null,
     howTo: [
-      "Definir EVOLUTION_API_KEY no .env (chave nova, a antiga esteve no git)",
-      "docker compose up -d evolution-api",
-      "Criar instância e ler o QR code pelo manager da Evolution",
+      "developers.facebook.com > criar app (tipo Business) > produto WhatsApp > número de teste da Meta",
+      "Copiar o Phone number ID e um token de acesso (permanente via usuário do sistema) para META_PHONE_NUMBER_ID e META_ACCESS_TOKEN",
+      "Configuration > Webhook: URL pública do n8n, Verify token = META_VERIFY_TOKEN, campo 'messages' assinado",
+      "App Secret (Configurações do app > Básico) em META_APP_SECRET: a assinatura de cada webhook é validada",
+      "Em produção, o número precisa de Business verificado e templates aprovados para mensagens fora da janela de 24h",
     ],
   };
-  const details = [row("URL", EVOLUTION_URL), envRow("EVOLUTION_API_KEY")];
-  if (!probe.reachable) {
-    return { ...base, status: "down", summary: `Sem conexão (${probe.error})`, details };
-  }
-  const key = envValue("EVOLUTION_API_KEY");
-  if (key && !isPlaceholder(key)) {
-    const instances = await httpProbe(`${EVOLUTION_URL}/instance/fetchInstances`, { headers: { apikey: key } });
-    if (instances.status === 401) {
-      details.push(row("Autenticação", "EVOLUTION_API_KEY recusada (401)", "missing"));
-    } else if (Array.isArray(instances.json)) {
-      details.push(row("Instâncias", String(instances.json.length)));
-      for (const item of instances.json.slice(0, 5)) {
-        const name = item.name || item.instance?.instanceName || "instância";
-        const state = item.connectionStatus || item.instance?.status || "desconhecido";
-        details.push(row(name, state, state === "open" ? "ok" : "warn"));
-      }
-    }
-  }
-  return { ...base, status: "up", summary: `API respondeu HTTP ${probe.status}`, details };
+}
+
+export async function metaPing() {
+  const token = envValue("META_ACCESS_TOKEN");
+  const phoneId = envValue("META_PHONE_NUMBER_ID");
+  if (!token || isPlaceholder(token) || !phoneId || isPlaceholder(phoneId)) return { ok: false, message: "META_ACCESS_TOKEN / META_PHONE_NUMBER_ID não configurados" };
+  const probe = await httpProbe(`${META_GRAPH}/${META_API_VERSION}/${encodeURIComponent(phoneId)}?fields=display_phone_number,verified_name,quality_rating`, {
+    headers: { Authorization: `Bearer ${token}` },
+    timeout: 8000,
+  });
+  if (!probe.reachable) return { ok: false, message: `Sem conexão com o Graph API (${probe.error})` };
+  if (probe.status === 200 && probe.json) return { ok: true, message: `Número ${probe.json.display_phone_number || "?"} · ${probe.json.verified_name || "sem nome verificado"} · qualidade ${probe.json.quality_rating || "n/d"}` };
+  if ([401, 403].includes(probe.status)) return { ok: false, message: `Token recusado (HTTP ${probe.status})` };
+  return { ok: false, message: `HTTP ${probe.status}${probe.json?.error?.message ? `: ${probe.json.error.message}` : ""}` };
 }
 
 async function postgres() {
@@ -200,9 +221,9 @@ function gemini() {
 }
 
 export async function probeAll() {
-  const [python, n8n, evo, pg, dk] = await Promise.all([pythonService(), n8nHealth(), evolution(), postgres(), docker()]);
+  const [python, n8n, meta, pg, dk] = await Promise.all([pythonService(), n8nHealth(), whatsappMeta(), postgres(), docker()]);
   const webhook = await n8nWebhook(n8n.status === "up");
-  return [python, n8n, webhook, evo, pg, dk, googleCalendar(), gemini()];
+  return [python, n8n, webhook, meta, pg, dk, googleCalendar(), gemini()];
 }
 
 export async function geminiPing() {
