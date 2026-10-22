@@ -34,6 +34,82 @@ WhatsApp ──► n8n Orchestrator
 | SecretaryVoice | Redigir tom humano | Introduzir fatos novos |
 | Escalation | Passar para humana com contexto | Continuar chutando |
 
+## Diagramas (Mermaid)
+
+### Contexto: quem fala com quem
+
+```mermaid
+flowchart LR
+    P([Paciente no WhatsApp]) <--> M[Meta WhatsApp Cloud API]
+    M -- webhook --> N[n8n<br/>só orquestra]
+    N -- POST /meta/webhook --> S[Serviço Python<br/>app/interfaces]
+    S --> D[Domínio<br/>intenção, unidade,<br/>grounding, voz]
+    D -. config .-> C[(config/*.json)]
+    D -. tool result .-> G[Calendário<br/>MCP / gateway]
+    S -- replies, send_payload, handoff --> N
+    N -- POST /messages --> M
+    N -- handoff --> H([Equipe / dra.])
+    S -- JSONL com trace --> L[(logs/)]
+    N -.-> DB[(Postgres<br/>etapa E4)]
+```
+
+### Um turno: ordem de decisão (`process_turn`)
+
+```mermaid
+flowchart TD
+    A[Mensagem] --> B[Classifica intenção<br/>+ risco clínico]
+    B --> C{Opt-out?}
+    C -- sim --> C1[Limpa sessão e não envia mais]
+    C -- não --> D{Clínico, reclamação<br/>ou pede humana?}
+    D -- sim --> D1[Escala: handoff escalate]
+    D -- não --> E{Pendente:<br/>recado?}
+    E -- sim --> E1[Registra recado<br/>handoff leave_message]
+    E -- não --> F{Pendente:<br/>escolha do fallback?}
+    F -- sim --> F1{Escolha}
+    F1 -- verificar dra --> F2[handoff check_dra]
+    F1 -- deixar recado --> F3[Pede o recado]
+    F1 -- dispensar --> F4[Encerra educadamente]
+    F1 -- pedido normal --> G
+    F -- não --> G{Intenção mapeada?}
+    G -- UNKNOWN --> G1[Pede desculpa e oferece<br/>verificar com a dra. ou recado<br/>handoff offer]
+    G -- sim --> H[Resolve unidade<br/>DDD é só hipótese]
+    H --> I[Consulta calendário<br/>só se precisar]
+    I --> J[Grounding: allowed_claims]
+    J --> K[Voz: template<br/>só com claims liberadas]
+    K --> R[reply_text + trace]
+    D1 --> R
+    G1 --> R
+```
+
+### Grounding: ferramenta vazia ou com erro
+
+```mermaid
+flowchart LR
+    Q[Paciente pergunta<br/>horário ou cidade da dra.] --> T{Resultado do<br/>calendário}
+    T -- ok com evidência --> A[Claim liberada<br/>pode citar]
+    T -- vazio ou erro --> B[Claim bloqueada]
+    B --> X[Pergunta a cidade, pede um<br/>instante ou escala]
+    A --> V[Voz redige]
+    X --> V
+```
+
+### Fallback fora do mapeado (estados da sessão)
+
+```mermaid
+stateDiagram-v2
+    [*] --> Normal
+    Normal --> AguardaEscolha: intenção desconhecida<br/>(pede desculpa e oferece opções)
+    AguardaEscolha --> Normal: verificar com a dra.<br/>(handoff check_dra)
+    AguardaEscolha --> AguardaRecado: quer deixar recado
+    AguardaEscolha --> Normal: dispensa
+    AguardaEscolha --> Normal: pedido que sabemos tratar
+    AguardaEscolha --> Normal: resposta ambígua<br/>(vira recado implícito)
+    AguardaRecado --> Normal: recado enviado à equipe<br/>(texto não fica na sessão)
+    Normal --> Escalado: clínico, reclamação ou humana
+    Normal --> OptOut: pediu para parar
+    OptOut --> [*]
+```
+
 ## Unidades
 
 - Pato Branco — DDD 46 — calendário próprio (`config/clinic.json`)
