@@ -1,84 +1,256 @@
-{
-  "id": "j9ZLd2huqjyrghXf",
-  "name": "Dentist WhatsApp Intent Workflow",
-  "nodes": [
-    {
-      "parameters": {
-        "httpMethod": "POST",
-        "path": "intent-webhook",
-        "responseMode": "lastNode",
-        "options": {}
-      },
-      "id": "f17e57f3-31b7-445f-ace9-fcaaeabba118",
-      "name": "Webhook",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2,
-      "position": [300, 300],
-      "webhookId": "030caabc-8949-4ba5-b67d-d361d492fa08"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://host.docker.internal:8001/turn",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ message: $json.body.message, whatsapp_number: $json.body.from || $json.body.whatsapp_number }) }}",
-        "options": {}
-      },
-      "id": "http-request-node",
-      "name": "Process Turn",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [600, 300]
-    },
-    {
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "const payload = $input.first().json;\nconst canAssert = payload.can_assert_facts === true;\nconst reply = payload.reply_text || '';\nconst escalation = payload.escalation || { needed: false, reason: null };\nreturn [{ json: {\n  intent: payload.intent || 'UNKNOWN',\n  confidence: payload.confidence || 'medium',\n  unit_hypothesis: payload.unit_hypothesis || null,\n  presence_evidence: payload.presence_evidence || 'missing',\n  availability_evidence: payload.availability_evidence || 'missing',\n  allowed_claims: payload.allowed_claims || {},\n  escalation,\n  can_assert_facts: canAssert,\n  reply_text: reply,\n  next: canAssert ? 'respond' : (escalation.needed ? 'handoff' : 'ask')\n} }];"
-      },
-      "id": "set-node",
-      "name": "Grounded Reply",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [900, 300]
-    }
-  ],
-  "connections": {
-    "Webhook": {
-      "main": [
-        [
-          {
-            "node": "Process Turn",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Process Turn": {
-      "main": [
-        [
-          {
-            "node": "Grounded Reply",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    }
-  },
-  "active": true,
-  "settings": {
-    "executionOrder": "v1"
-  },
-  "versionId": "fase-1-turn"
+﻿{
+    "name":  "Dentist WhatsApp Intent Workflow",
+    "nodes":  [
+                  {
+                      "parameters":  {
+                                         "httpMethod":  "POST",
+                                         "path":  "intent-webhook",
+                                         "responseMode":  "lastNode",
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "f17e57f3-31b7-445f-ace9-fcaaeabba118",
+                      "name":  "Webhook",
+                      "type":  "n8n-nodes-base.webhook",
+                      "typeVersion":  2,
+                      "position":  [
+                                       160,
+                                       300
+                                   ],
+                      "webhookId":  "030caabc-8949-4ba5-b67d-d361d492fa08"
+                  },
+                  {
+                      "parameters":  {
+                                         "method":  "POST",
+                                         "url":  "http://host.docker.internal:8001/turn",
+                                         "sendBody":  true,
+                                         "specifyBody":  "json",
+                                         "jsonBody":  "={{ JSON.stringify($json.body ?? $json) }}",
+                                         "options":  {
+                                                         "timeout":  8000
+                                                     }
+                                     },
+                      "id":  "python-intent-service-turn",
+                      "name":  "Intent Service (Python /turn)",
+                      "type":  "n8n-nodes-base.httpRequest",
+                      "typeVersion":  4.2,
+                      "position":  [
+                                       380,
+                                       300
+                                   ],
+                      "onError":  "continueRegularOutput"
+                  },
+                  {
+                      "parameters":  {
+                                         "resource":  "event",
+                                         "operation":  "getAll",
+                                         "calendar":  {
+                                                          "__rl":  true,
+                                                          "value":  "b7f9f29c5e491112263af69f24f06ab0f15be2e0bd240370f7f4efae99669cb4@group.calendar.google.com",
+                                                          "mode":  "id"
+                                                      },
+                                         "returnAll":  false,
+                                         "limit":  30,
+                                         "options":  {
+                                                         "timeMin":  "={{ $now.setZone(\u0027America/Sao_Paulo\u0027).startOf(\u0027day\u0027).toISO() }}",
+                                                         "timeMax":  "={{ $now.setZone(\u0027America/Sao_Paulo\u0027).plus({ days: 7 }).endOf(\u0027day\u0027).toISO() }}",
+                                                         "singleEvents":  true,
+                                                         "orderBy":  "startTime"
+                                                     }
+                                     },
+                      "id":  "google-calendar-consultar",
+                      "name":  "Google_Calendar_Consultar",
+                      "type":  "n8n-nodes-base.googleCalendar",
+                      "typeVersion":  1.2,
+                      "position":  [
+                                       620,
+                                       300
+                                   ],
+                      "credentials":  {
+                                          "googleCalendarOAuth2Api":  {
+                                                                          "id":  "Google Calendar OAuth2 API",
+                                                                          "name":  "Google Calendar OAuth2 API"
+                                                                      }
+                                      },
+                      "alwaysOutputData":  true,
+                      "onError":  "continueRegularOutput"
+                  },
+                  {
+                      "parameters":  {
+                                         "mode":  "runOnceForAllItems",
+                                         "jsCode":  "const wh = $(\u0027Webhook\u0027).first().json;\nconst payload = wh.body ? wh.body : wh;\nconst userMsg = String(payload.message ?? payload.text ?? \u0027\u0027).trim();\nconst senderPhone = String(payload.from ?? payload.phone ?? payload.whatsapp_number ?? \u0027nao_informado\u0027);\nconst senderName = String(payload.name ?? payload.patient_name ?? \u0027\u0027).trim();\nconst senderEmail = String(payload.email ?? \u0027\u0027).trim();\nconst msgLower = userMsg.toLowerCase();\n\nconst pyNode = $(\u0027Intent Service (Python /turn)\u0027).first();\nconst pyTurn = pyNode ? pyNode.json : {};\n\n// 1. Eventos ocupados na Google Agenda da Dra. Daiana\nconst calEvents = $input.all().map(item =\u003e item.json).filter(ev =\u003e ev \u0026\u0026 (ev.start || ev.id));\nconst busySlots = calEvents.map(ev =\u003e {\n  const s = ev.start?.dateTime ?? ev.start?.date ?? \u0027\u0027;\n  const e = ev.end?.dateTime ?? ev.end?.date ?? \u0027\u0027;\n  return {\n    start: s ? new Date(s) : null,\n    end: e ? new Date(e) : null,\n    summary: ev.summary ?? \u0027Ocupado\u0027\n  };\n}).filter(b =\u003e b.start \u0026\u0026 b.end);\n\n// 2. Triagem: verifica se Ã© a prÃ³pria pessoa ou um parente/responsÃ¡vel agendando para terceiro\nconst relativeRegex = /(meu filho|minha filha|meu marido|minha esposa|minha mae|minha mÃ£e|meu pai|meu irmao|meu irmÃ£o|minha irma|minha irmÃ£|neto|neta|sobrinho|sobrinha|parente|familiar|outra pessoa|para o |para a )/i;\nconst isRelativeBooking = Boolean(pyTurn.is_relative) || relativeRegex.test(msgLower);\n\n// Extrai e-mail caso tenha sido enviado no texto\nconst emailMatch = userMsg.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/);\nconst detectedEmail = senderEmail || (emailMatch ? emailMatch[0] : \u0027\u0027);\n\n// 3. HorÃ¡rio aproximado solicitado pela pessoa\nlet targetHour = 14;\nconst hourMatch = msgLower.match(/(\\d{1,2})\\s*(?:h|hs|horas|:00|:30)/);\nif (hourMatch) {\n  targetHour = parseInt(hourMatch[1], 10);\n} else if (msgLower.includes(\u0027manha\u0027) || msgLower.includes(\u0027manhÃ£\u0027) || msgLower.includes(\u0027cedo\u0027)) {\n  targetHour = 9;\n} else if (msgLower.includes(\u0027tarde\u0027)) {\n  targetHour = 15;\n}\n\n// 4. Data base (prÃ³ximo dia Ãºtil de Segunda a Sexta)\nconst targetDate = new Date();\ntargetDate.setDate(targetDate.getDate() + 1);\nif (targetDate.getDay() === 0) targetDate.setDate(targetDate.getDate() + 1);\nif (targetDate.getDay() === 6) targetDate.setDate(targetDate.getDate() + 2);\n\n// Grade da Dra. Daiana: 08h-12h e 14h-18h\nconst clinicHours = [8, 9, 10, 11, 14, 15, 16, 17];\nconst availableSlots = [];\n\nfor (const hr of clinicHours) {\n  const slotStart = new Date(targetDate);\n  slotStart.setHours(hr, 0, 0, 0);\n  const slotEnd = new Date(targetDate);\n  slotEnd.setHours(hr + 1, 0, 0, 0);\n\n  const isBusy = busySlots.some(b =\u003e slotStart \u003c b.end \u0026\u0026 slotEnd \u003e b.start);\n  if (!isBusy) {\n    availableSlots.push({\n      hour: hr,\n      distance: Math.abs(hr - targetHour),\n      label: `${String(hr).padStart(2, \u00270\u0027)}:00`,\n      isoStart: slotStart.toISOString(),\n      isoEnd: slotEnd.toISOString()\n    });\n  }\n}\n\navailableSlots.sort((a, b) =\u003e a.distance - b.distance);\nconst closestSlots = availableSlots.slice(0, 3);\nconst closestLabels = closestSlots.map(s =\u003e s.label);\nconst chosenSlot = closestSlots[0] || null;\nconst dateBR = targetDate.toLocaleDateString(\u0027pt-BR\u0027);\n\n// 5. Verifica se jÃ¡ Ã© uma confirmaÃ§Ã£o explÃ­cita para gravar na agenda\nconst confirmRegex = /(confirmo|confirmado|pode marcar|pode agendar|quero agendar|fechado|combinado)/i;\nconst shouldCreateEvent = Boolean(payload.confirm_booking) || (confirmRegex.test(msgLower) \u0026\u0026 Boolean(hourMatch) \u0026\u0026 chosenSlot !== null);\n\nlet replyText = pyTurn.reply_text ?? \u0027\u0027;\nconst asksSchedule = /(agendar|marcar|horario|horÃ¡rio|vaga|consulta|disponibilidade|disponivel|disponÃ­vel|segunda|terca|terÃ§a|quarta|quinta|sexta|amanha|amanhÃ£|manha|manhÃ£|tarde)/i.test(msgLower);\n\nif (shouldCreateEvent \u0026\u0026 chosenSlot) {\n  const who = senderName || \u0027Paciente\u0027;\n  replyText = `Perfeito! Agendamento confirmado na agenda da Dra. Daiana para ${dateBR} Ã s ${chosenSlot.label} (${who}). Caso precise de recibo para reembolso ou tenha qualquer dÃºvida atÃ© o dia da consulta, estamos Ã  disposiÃ§Ã£o!`;\n} else if (asksSchedule \u0026\u0026 closestLabels.length \u003e 0) {\n  const optionsStr = closestLabels.join(\u0027, \u0027);\n  if (isRelativeBooking) {\n    replyText = `Com certeza! Vi que vocÃª estÃ¡ verificando horÃ¡rio para um familiar/outra pessoa. Olhei a agenda da Dra. Daiana e, para ${dateBR}, os horÃ¡rios disponÃ­veis mais prÃ³ximos ao que vocÃª pediu sÃ£o: ${optionsStr}. Para deixarmos reservado, qual Ã© o Nome Completo do paciente que serÃ¡ atendido, o seu nome (responsÃ¡vel) e um telefone ou e-mail de contato?`;\n  } else {\n    replyText = `OlÃ¡! Verifiquei a agenda da Dra. Daiana e, para ${dateBR}, os horÃ¡rios disponÃ­veis mais prÃ³ximos ao seu pedido sÃ£o: ${optionsStr}. A consulta serÃ¡ para vocÃª mesmo(a) ou vocÃª estÃ¡ agendando para algum familiar? Por gentileza, me informe tambÃ©m o nome completo e seu telefone ou e-mail para confirmarmos.`;\n  }\n} else if (!replyText) {\n  replyText = `OlÃ¡! Sou a secretÃ¡ria virtual da Dra. Daiana. Para consultar a agenda, por favor me informe seu nome, telefone ou e-mail, se a consulta Ã© para vocÃª ou para algum parente/familiar e qual o dia e horÃ¡rio de sua preferÃªncia.`;\n}\n\nreturn [{\n  json: {\n    ...pyTurn,\n    ok: true,\n    reply_text: replyText,\n    is_relative_booking: isRelativeBooking,\n    sender_phone: senderPhone,\n    sender_email: detectedEmail,\n    checked_date: dateBR,\n    closest_available_slots: closestLabels,\n    should_create_event: shouldCreateEvent,\n    booking_start_iso: chosenSlot ? chosenSlot.isoStart : \u0027\u0027,\n    booking_end_iso: chosenSlot ? chosenSlot.isoEnd : \u0027\u0027,\n    booking_summary: `Consulta OdontolÃ³gica - ${senderName || senderPhone}`,\n    booking_description: `Paciente/Contato: ${senderName || \u0027A confirmar\u0027} | Parente/Terceiro: ${isRelativeBooking ? \u0027Sim\u0027 : \u0027PrÃ³prio paciente\u0027} | WhatsApp: ${senderPhone} | E-mail: ${detectedEmail || \u0027NÃ£o informado\u0027} | Mensagem: ${userMsg}`,\n    can_assert_facts: true,\n    status: \u0027success\u0027\n  }\n}];"
+                                     },
+                      "id":  "triagem-horarios-proximos",
+                      "name":  "Triagem e HorÃ¡rios PrÃ³ximos",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       860,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "conditions":  {
+                                                            "options":  {
+                                                                            "caseSensitive":  true,
+                                                                            "leftValue":  "",
+                                                                            "typeValidation":  "strict",
+                                                                            "version":  2
+                                                                        },
+                                                            "conditions":  [
+                                                                               {
+                                                                                   "id":  "cond-create-event",
+                                                                                   "leftValue":  "={{ $json.should_create_event }}",
+                                                                                   "rightValue":  true,
+                                                                                   "operator":  {
+                                                                                                    "type":  "boolean",
+                                                                                                    "operation":  "true",
+                                                                                                    "singleValue":  true
+                                                                                                }
+                                                                               }
+                                                                           ],
+                                                            "combinator":  "and"
+                                                        },
+                                         "options":  {
+
+                                                     }
+                                     },
+                      "id":  "if-confirmou-agendamento",
+                      "name":  "Confirmou Agendamento?",
+                      "type":  "n8n-nodes-base.if",
+                      "typeVersion":  2.2,
+                      "position":  [
+                                       1100,
+                                       300
+                                   ]
+                  },
+                  {
+                      "parameters":  {
+                                         "resource":  "event",
+                                         "operation":  "create",
+                                         "calendar":  {
+                                                          "__rl":  true,
+                                                          "value":  "b7f9f29c5e491112263af69f24f06ab0f15be2e0bd240370f7f4efae99669cb4@group.calendar.google.com",
+                                                          "mode":  "id"
+                                                      },
+                                         "start":  "={{ $json.booking_start_iso }}",
+                                         "end":  "={{ $json.booking_end_iso }}",
+                                         "additionalFields":  {
+                                                                  "summary":  "={{ $json.booking_summary }}",
+                                                                  "description":  "={{ $json.booking_description }}"
+                                                              }
+                                     },
+                      "id":  "google-calendar-agendar",
+                      "name":  "Google_Calendar_Agendar",
+                      "type":  "n8n-nodes-base.googleCalendar",
+                      "typeVersion":  1.2,
+                      "position":  [
+                                       1340,
+                                       180
+                                   ],
+                      "credentials":  {
+                                          "googleCalendarOAuth2Api":  {
+                                                                          "id":  "Google Calendar OAuth2 API",
+                                                                          "name":  "Google Calendar OAuth2 API"
+                                                                      }
+                                      },
+                      "onError":  "continueRegularOutput"
+                  },
+                  {
+                      "parameters":  {
+                                         "mode":  "runOnceForAllItems",
+                                         "jsCode":  "const data = $(\u0027Triagem e HorÃ¡rios PrÃ³ximos\u0027).first().json;\nreturn [{ json: data }];"
+                                     },
+                      "id":  "grounded-reply-final",
+                      "name":  "Grounded Reply",
+                      "type":  "n8n-nodes-base.code",
+                      "typeVersion":  2,
+                      "position":  [
+                                       1580,
+                                       300
+                                   ]
+                  }
+              ],
+    "connections":  {
+                        "Webhook":  {
+                                        "main":  [
+                                                     [
+                                                         {
+                                                             "node":  "Intent Service (Python /turn)",
+                                                             "type":  "main",
+                                                             "index":  0
+                                                         }
+                                                     ]
+                                                 ]
+                                    },
+                        "Intent Service (Python /turn)":  {
+                                                              "main":  [
+                                                                           [
+                                                                               {
+                                                                                   "node":  "Google_Calendar_Consultar",
+                                                                                   "type":  "main",
+                                                                                   "index":  0
+                                                                               }
+                                                                           ]
+                                                                       ]
+                                                          },
+                        "Google_Calendar_Consultar":  {
+                                                          "main":  [
+                                                                       [
+                                                                           {
+                                                                               "node":  "Triagem e HorÃ¡rios PrÃ³ximos",
+                                                                               "type":  "main",
+                                                                               "index":  0
+                                                                           }
+                                                                       ]
+                                                                   ]
+                                                      },
+                        "Triagem e HorÃ¡rios PrÃ³ximos":  {
+                                                              "main":  [
+                                                                           [
+                                                                               {
+                                                                                   "node":  "Confirmou Agendamento?",
+                                                                                   "type":  "main",
+                                                                                   "index":  0
+                                                                               }
+                                                                           ]
+                                                                       ]
+                                                          },
+                        "Confirmou Agendamento?":  {
+                                                       "main":  [
+                                                                    [
+                                                                        {
+                                                                            "node":  "Google_Calendar_Agendar",
+                                                                            "type":  "main",
+                                                                            "index":  0
+                                                                        }
+                                                                    ],
+                                                                    [
+                                                                        {
+                                                                            "node":  "Grounded Reply",
+                                                                            "type":  "main",
+                                                                            "index":  0
+                                                                        }
+                                                                    ]
+                                                                ]
+                                                   },
+                        "Google_Calendar_Agendar":  {
+                                                        "main":  [
+                                                                     [
+                                                                         {
+                                                                             "node":  "Grounded Reply",
+                                                                             "type":  "main",
+                                                                             "index":  0
+                                                                         }
+                                                                     ]
+                                                                 ]
+                                                    }
+                    },
+    "active":  true,
+    "settings":  {
+                     "executionOrder":  "v1"
+                 },
+    "id":  "j9ZLd2huqjyrghXf"
 }

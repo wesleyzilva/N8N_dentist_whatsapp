@@ -7,7 +7,7 @@
   <img src="https://img.shields.io/badge/WhatsApp-Integration-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" />
 </p>
 
-Secretária digital no WhatsApp da dra de **harmonização orofacial**: atendimento humanizado, duas unidades (Pato Branco DDD 46 e São Carlos DDD 16), agenda no Google Calendar e guardrails para não alucinar horário, procedimento, preço nem a cidade da dra. Não é secretária de consultório odontológico geral.
+Secretária digital no WhatsApp da dra de **harmonização orofacial e dentista**: atendimento humanizado, duas unidades (Pato Branco DDD 46 e São Carlos DDD 16), agenda no Google Calendar e guardrails para não alucinar horário, procedimento, preço nem a cidade da dra. É secretária de consultorio odontologico e de harmonização oro facial.
 
 Governança agentic (TPM, Dev, QA, MCPs): `AGENTS.md` e `docs/canonical/CANONICAL_MAP.md`.
 
@@ -15,7 +15,7 @@ Governança agentic (TPM, Dev, QA, MCPs): `AGENTS.md` e `docs/canonical/CANONICA
 
 - receber o paciente no Zap com tom de secretária
 - classificar intenção (confirmar, reagendar, cancelar, dúvida, horário, cidade)
-- tratar DDD 46/16 como hipótese de unidade, não como “onde a dra está”
+- tratar DDD 46/16 como hipótese de unidade na região que ela atende, não como “onde a dra está”
 - só citar disponibilidade/presença com evidência de calendário
 - escalar para humana quando faltar fato ou houver risco clínico
 
@@ -42,7 +42,7 @@ The solution is organized into three main layers:
 - Python service: intent classification endpoint
 - PostgreSQL: local persistence for n8n data
 - Docker Compose: local environment startup
-- optional integrations: Google Calendar, WhatsApp providers, and LLM services
+- Usar: Google Calendar, WhatsApp providers, and LLM services
 
 ## Repository Structure
 
@@ -136,3 +136,12 @@ Ver fases em `IMPLEMENTATION_PLAN.md`. Próximo: Fase 1 (canal + voz) e Fase 2 (
 
 This project is intended for internal and experimental use. Review credentials and secrets before production deployment.
 
+Referencias:
+https://www.instagram.com/dradaianaferrazsc/
+https://www.doctoralia.com.br/daiana-ferraz/dentista/sao-carlos
+https://wesleyzilva.github.io/dradaianaferraz_gold/
+https://www.linkedin.com/in/daiana-ferraz-87b678a8?originalSubdomain=br
+https://share.google/8izkLDUWHEjXf83gC Pato Branco
+
+
+QUERO REESTRUTURAR O PROJETO PARA DEIXAR NO JEITO PARA AS PROXIMOS DESENOVLVIMENTOS DE FORMA ORGANIZADA E FASEADA COMO AGENTIC TPM. CRIAR UM PLANEJAMENTO PRIMEIRO E REGISTRAR ESTA REESTRUTURAÇÃO SEM SE PERDER E PRECISO REGISTRAR O QUE JA TEMOS PARA APROVEITAR.

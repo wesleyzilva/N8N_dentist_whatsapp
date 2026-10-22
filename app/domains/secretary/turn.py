@@ -15,7 +15,14 @@ from app.infrastructure.memory.patient_cache import (
 
 def _is_clinical(message: str, keywords: list[str]) -> bool:
     text = (message or "").lower()
-    return any(keyword.lower() in text for keyword in keywords)
+    urgent = [
+        "inchad", "doend", "dor", "piorand", "sangr", "febre", "sintoma",
+        "esperando", "ninguém me atende", "absurdo", "avaliação péssima",
+        "dinheiro de volta", "falar com uma pessoa", "falar com a dra",
+        "humano", "atendente", "reembolso", "incompetente"
+    ]
+    all_keywords = list(keywords) + urgent
+    return any(k.lower() in text for k in all_keywords)
 
 
 def _requested_claims(intent: str) -> list[str]:
@@ -61,7 +68,7 @@ def process_turn(
         unit["unit_id"] = session["unit_id"]
         unit["needs_confirmation"] = not session.get("unit_confirmed")
 
-    if merged["opt_out"]:
+    if merged["opt_out"] or intent == "OPT_OUT":
         cache.put(whatsapp_number, session)
         brief = session_brief(session)
         return {
@@ -87,8 +94,36 @@ def process_turn(
             },
         }
 
+    # Escalação para casos clínicos, reclamações ou pedido de atendente humano
+    if intent == "ESCALATE" or clinical:
+        escalation = {"needed": True, "reason": "clinical"}
+        reply_msg = "Entendi perfeitamente. Como você precisa de atenção específica, estou encaminhando agora mesmo seu caso para a nossa equipe e para a Dra. Daiana te atender com prioridade."
+        cache.put(whatsapp_number, session)
+        brief = session_brief(session)
+        max_chars = int(load_session().get("llm_brief_max_chars", 160))
+        return {
+            "intent": intent,
+            "confidence": "high",
+            "unit_hypothesis": unit,
+            "presence_evidence": "missing",
+            "availability_evidence": "missing",
+            "allowed_claims": allowed_claims([], {}),
+            "escalation": escalation,
+            "reply_text": reply_msg,
+            "next": "handoff",
+            "can_assert_facts": False,
+            "session": {
+                "hit": previous is not None,
+                "brief": brief,
+                "unit_confirmed": bool(session.get("unit_confirmed")),
+                "pending": session.get("pending"),
+                "opt_out": False,
+                "brief_chars": len(brief),
+                "brief_max_chars": max_chars,
+            },
+        }
+
     evidence: Dict[str, Any] = {}
-    # Agenda/presença nunca vêm do cache — só da ferramenta do turno.
     presence_raw = calendar.presence_blocks("", "")
     slots = calendar.freebusy("", "", "")
 

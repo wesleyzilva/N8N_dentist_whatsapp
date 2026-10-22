@@ -1,0 +1,144 @@
+{
+  "name": "SecretarIA Dra. Daiana - Agente Inteligente WhatsApp & Agenda",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-dra-daiana",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "node-webhook-inbound",
+      "name": "Receber Mensagem WhatsApp",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.message || $json.body.text || $json.body.entry[0].changes[0].value.messages[0].text.body }}",
+        "options": {
+          "systemMessage": "Você é a Secretária Virtual Oficial da Dra. Daiana (Odontologia Ipanema).\nSeu objetivo é atender os pacientes com empatia, acolhimento e profissionalismo, esclarecer dúvidas sobre tratamentos odontológicos e ORQUESTRAR A AGENDA MÉDICA.\n\nREGRAS CRÍTICAS DE CONDUTA:\n1. Sempre que o paciente perguntar por horários ou quiser agendar, utilize a ferramenta 'Consultar_Horarios_Google_Calendar' para verificar as vagas disponíveis na agenda oficial.\n2. Nunca invente horários. Ofereça de 2 a 3 opções de horários livres encontrados.\n3. Quando o paciente escolher o horário e fornecer seu nome e telefone, use a ferramenta 'Agendar_Consulta_Google_Calendar' para bloquear a vaga na agenda.\n4. Se o paciente quiser cancelar ou reagendar, use 'Remarcar_Consulta_Google_Calendar'.\n5. Atendemos consultas particulares e emitimos recibo/nota fiscal para reembolso no plano de saúde.\n6. Mantenha as mensagens objetivas, gentis e em português do Brasil."
+        }
+      },
+      "id": "node-ai-agent",
+      "name": "SecretarIA Agente Dra. Daiana",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.8-flash",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "node-gemini-model",
+      "name": "Google Gemini 3.8 Flash",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [440, 500]
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "id": "node-memory",
+      "name": "Memória da Conversa",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [560, 500]
+    },
+    {
+      "parameters": {
+        "name": "Consultar_Horarios_Google_Calendar",
+        "description": "Verifica os eventos e horários vagos na agenda da Dra. Daiana para uma data ou intervalo de dias específico.",
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "id": "tool-check-slots",
+      "name": "Tool: Consultar Horários",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [680, 500]
+    },
+    {
+      "parameters": {
+        "name": "Agendar_Consulta_Google_Calendar",
+        "description": "Cria um novo evento de consulta odontológica na agenda da Dra. Daiana informando nome do paciente, telefone, procedimento e horário de início.",
+        "workflowId": {
+          "__rl": true,
+          "mode": "list",
+          "value": ""
+        }
+      },
+      "id": "tool-book-appointment",
+      "name": "Tool: Agendar Consulta",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2,
+      "position": [800, 500]
+    }
+  ],
+  "connections": {
+    "Receber Mensagem WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "SecretarIA Agente Dra. Daiana",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini 3.8 Flash": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "SecretarIA Agente Dra. Daiana",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memória da Conversa": {
+      "ai_memory": [
+        [
+          {
+            "node": "SecretarIA Agente Dra. Daiana",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool: Consultar Horários": {
+      "ai_tool": [
+        [
+          {
+            "node": "SecretarIA Agente Dra. Daiana",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool: Agendar Consulta": {
+      "ai_tool": [
+        [
+          {
+            "node": "SecretarIA Agente Dra. Daiana",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
