@@ -1,11 +1,22 @@
-"""Implementação Oficial da Google Agenda da Dra. Daiana (Fase 3)."""
+"""Gateways de calendário (P4/P5).
 
-import os
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Protocol
+Regra de ouro: sem resultado de ferramenta, a secretária não afirma horário nem
+cidade da dra. O gateway padrão (`MissingCalendarGateway`) devolve vazio.
+`FixtureCalendarGateway` e `ErrorCalendarGateway` existem só para simulação/QA.
+O cliente real do Google Calendar (Fase 3) ainda não existe.
+"""
+
+from typing import Any, Dict, List, Optional, Protocol
+
+MODE_MISSING = "missing"
+MODE_ERROR = "error"
+MODE_FIXTURE = "fixture"
+CALENDAR_MODES = (MODE_MISSING, MODE_ERROR, MODE_FIXTURE)
 
 
 class CalendarGateway(Protocol):
+    mode: str
+
     def freebusy(self, calendar_id: str, time_min: str, time_max: str) -> List[Dict[str, Any]]:
         ...
 
@@ -13,48 +24,53 @@ class CalendarGateway(Protocol):
         ...
 
 
-class GoogleCalendarGateway:
-    """Gateway real conectado aos horários da Dra. Daiana (São Carlos e Pato Branco)."""
+class MissingCalendarGateway:
+    """Calendário não configurado: nunca devolve horário nem presença."""
 
-    def __init__(self):
-        self.cal_sao_carlos = os.getenv(
-            "GOOGLE_CALENDAR_SAO_CARLOS",
-            "b7f9f29c5e491112263af69f24f06ab0f15be2e0bd240370f7f4efae99669cb4@group.calendar.google.com"
-        )
-        self.cal_pato_branco = os.getenv(
-            "GOOGLE_CALENDAR_PATO_BRANCO",
-            "b7f9f29c5e491112263af69f24f06ab0f15be2e0bd240370f7f4efae99669cb4@group.calendar.google.com"
-        )
+    mode = MODE_MISSING
 
-    def freebusy(self, calendar_id: str, time_min: str = "", time_max: str = "") -> List[Dict[str, Any]]:
-        """Retorna os horários livres da Dra. Daiana para o próximo dia útil."""
-        now = datetime.now()
-        # Avança para o próximo dia útil
-        target_date = now + timedelta(days=1)
-        if target_date.weekday() == 5:  # Sábado
-            target_date += timedelta(days=2)
-        elif target_date.weekday() == 6:  # Domingo
-            target_date += timedelta(days=1)
+    def freebusy(self, calendar_id: str = "", time_min: str = "", time_max: str = "") -> List[Dict[str, Any]]:
+        return []
 
-        dia_formatado = target_date.strftime("%d/%m")
-        dia_semana = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"][target_date.weekday()]
+    def presence_blocks(self, calendar_id: str = "", at_iso: str = "") -> Dict[str, Any]:
+        return {}
 
-        # Horários oficiais livres da clínica (Segunda a Sexta)
+
+class ErrorCalendarGateway:
+    """Simula ferramenta fora do ar (timeout, OAuth expirado)."""
+
+    mode = MODE_ERROR
+
+    def freebusy(self, calendar_id: str = "", time_min: str = "", time_max: str = "") -> List[Dict[str, Any]]:
+        raise RuntimeError("calendar unavailable (simulated)")
+
+    def presence_blocks(self, calendar_id: str = "", at_iso: str = "") -> Dict[str, Any]:
+        raise RuntimeError("calendar unavailable (simulated)")
+
+
+class FixtureCalendarGateway:
+    """Resultado fixo e rotulado de teste. Nunca usar como padrão de produção."""
+
+    mode = MODE_FIXTURE
+
+    def __init__(self, city: Optional[str] = "São Carlos"):
+        self.city = city
+
+    def freebusy(self, calendar_id: str = "", time_min: str = "", time_max: str = "") -> List[Dict[str, Any]]:
         return [
-            {"start": f"{dia_formatado} 09:00", "end": f"{dia_formatado} 10:00", "label": f"{dia_semana} ({dia_formatado}) às 09:00"},
-            {"start": f"{dia_formatado} 14:30", "end": f"{dia_formatado} 15:30", "label": f"{dia_semana} ({dia_formatado}) às 14:30"},
-            {"start": f"{dia_formatado} 16:00", "end": f"{dia_formatado} 17:00", "label": f"{dia_semana} ({dia_formatado}) às 16:00"},
+            {"start": "quinta-feira às 09:00", "end": "quinta-feira às 10:00", "fixture": True},
+            {"start": "quinta-feira às 14:30", "end": "quinta-feira às 15:30", "fixture": True},
         ]
 
     def presence_blocks(self, calendar_id: str = "", at_iso: str = "") -> Dict[str, Any]:
-        """Informa a presença confirmada da Dra. Daiana na unidade."""
-        return {
-            "city": "São Carlos",
-            "evidence": "agenda_confirmada",
-            "status": "available"
-        }
+        if not self.city:
+            return {}
+        return {"city": self.city, "evidence": "fixture"}
 
 
-class MissingCalendarGateway(GoogleCalendarGateway):
-    """Herda do gateway real para garantir que nunca mais fique vazio."""
-    pass
+def build_calendar_gateway(mode: str = MODE_MISSING, fixture_city: Optional[str] = "São Carlos") -> CalendarGateway:
+    if mode == MODE_ERROR:
+        return ErrorCalendarGateway()
+    if mode == MODE_FIXTURE:
+        return FixtureCalendarGateway(city=fixture_city or None)
+    return MissingCalendarGateway()

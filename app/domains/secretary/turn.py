@@ -5,7 +5,11 @@ from app.domains.guardrails.grounding import allowed_claims
 from app.domains.locations.resolver import resolve_unit
 from app.domains.patients.session import city_for_unit, merge_session, session_brief
 from app.domains.secretary.voice import render_reply
-from app.infrastructure.config.config_loader import load_guardrails, load_session
+from app.infrastructure.config.config_loader import (
+    load_guardrails,
+    load_session,
+    load_voice,
+)
 from app.infrastructure.mcp.calendar import CalendarGateway, MissingCalendarGateway
 from app.infrastructure.memory.patient_cache import (
     InMemoryPatientCache,
@@ -23,6 +27,25 @@ def _is_clinical(message: str, keywords: list[str]) -> bool:
     ]
     all_keywords = list(keywords) + urgent
     return any(k.lower() in text for k in all_keywords)
+
+
+def _call_tool(call, *args) -> tuple[Any, str]:
+    """Chama a ferramenta sem deixar uma falha virar resposta inventada."""
+    try:
+        result = call(*args)
+    except Exception:
+        return None, "error"
+    if not result:
+        return None, "empty"
+    return result, "ok"
+
+
+def _idle_tool_status(calendar: CalendarGateway) -> Dict[str, str]:
+    return {
+        "calendar_mode": getattr(calendar, "mode", "custom"),
+        "freebusy": "not_queried",
+        "presence": "not_queried",
+    }
 
 
 def _requested_claims(intent: str) -> list[str]:
@@ -85,6 +108,7 @@ def process_turn(
                 opt_out=True,
             ),
             "can_assert_facts": False,
+            "tool_status": _idle_tool_status(calendar),
             "session": {
                 "hit": previous is not None,
                 "brief": brief,
@@ -97,7 +121,7 @@ def process_turn(
     # Escalação para casos clínicos, reclamações ou pedido de atendente humano
     if intent == "ESCALATE" or clinical:
         escalation = {"needed": True, "reason": "clinical"}
-        reply_msg = "Entendi perfeitamente. Como você precisa de atenção específica, estou encaminhando agora mesmo seu caso para a nossa equipe e para a Dra. Daiana te atender com prioridade."
+        reply_msg = load_voice().get("templates", {})["clinical_escalate"]
         cache.put(whatsapp_number, session)
         brief = session_brief(session)
         max_chars = int(load_session().get("llm_brief_max_chars", 160))
@@ -112,6 +136,7 @@ def process_turn(
             "reply_text": reply_msg,
             "next": "handoff",
             "can_assert_facts": False,
+            "tool_status": _idle_tool_status(calendar),
             "session": {
                 "hit": previous is not None,
                 "brief": brief,
@@ -124,15 +149,19 @@ def process_turn(
         }
 
     evidence: Dict[str, Any] = {}
-    presence_raw = calendar.presence_blocks("", "")
-    slots = calendar.freebusy("", "", "")
+    tool_status = _idle_tool_status(calendar)
 
-    if intent == "AVAILABILITY" and slots:
-        evidence["availability_slots"] = slots
+    if intent == "AVAILABILITY":
+        slots, tool_status["freebusy"] = _call_tool(calendar.freebusy, "", "", "")
+        if slots:
+            evidence["availability_slots"] = slots
     if intent == "LOCATION":
+        presence_raw, tool_status["presence"] = _call_tool(calendar.presence_blocks, "", "")
         city = presence_raw.get("city") if isinstance(presence_raw, dict) else None
         if city:
             evidence["doctor_presence_city"] = city
+        elif tool_status["presence"] == "ok":
+            tool_status["presence"] = "empty"
 
     claims = allowed_claims(_requested_claims(intent), evidence)
     city_label = city_for_unit(session.get("unit_id"))
@@ -176,6 +205,7 @@ def process_turn(
         "escalation": escalation,
         "reply_text": reply,
         "can_assert_facts": claims["can_assert_facts"] and not clinical,
+        "tool_status": tool_status,
         "session": {
             "hit": previous is not None,
             "brief": brief,

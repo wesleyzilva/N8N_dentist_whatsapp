@@ -4,16 +4,35 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from app.domains.appointments.intent_classifier import classify_intent
 from app.domains.secretary.turn import process_turn
+from app.infrastructure.mcp.calendar import CALENDAR_MODES, build_calendar_gateway
+from app.infrastructure.memory.patient_cache import (
+    default_patient_cache,
+    reset_default_patient_cache,
+)
 
 _TURN_PATHS = {"/turn", "/turn/"}
 _CLASSIFY_PATHS = {"/classify", "/classify/"}
 _HEALTH_PATHS = {"/healthz", "/"}
+_SIMULATE_TURN = "/simulate/turn"
+_SIMULATE_RESET = "/simulate/reset"
+
+
+def simulation_enabled() -> bool:
+    return os.getenv("SIMULATION_ENABLED", "").lower() in {"1", "true", "yes"}
 
 
 class IntentRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path in _HEALTH_PATHS:
-            self._send_json(200, {"status": "ok"})
+            self._send_json(
+                200,
+                {
+                    "status": "ok",
+                    "service": "secretaria-turn",
+                    "simulation_enabled": simulation_enabled(),
+                    "calendar_modes": list(CALENDAR_MODES),
+                },
+            )
             return
 
         self._send_json(404, {"error": "not found"})
@@ -37,7 +56,33 @@ class IntentRequestHandler(BaseHTTPRequestHandler):
             self._send_json(200, process_turn(message, whatsapp_number))
             return
 
+        if self.path in {_SIMULATE_TURN, _SIMULATE_RESET}:
+            if not simulation_enabled():
+                self._send_json(403, {"error": "simulation disabled (SIMULATION_ENABLED=1)"})
+                return
+            self._handle_simulation(payload, message, whatsapp_number)
+            return
+
         self._send_json(404, {"error": "not found"})
+
+    def _handle_simulation(self, payload: dict, message: str, whatsapp_number: str) -> None:
+        if self.path == _SIMULATE_RESET:
+            if whatsapp_number:
+                default_patient_cache().delete(whatsapp_number)
+            else:
+                reset_default_patient_cache()
+            self._send_json(200, {"status": "reset"})
+            return
+
+        mode = str(payload.get("calendar_mode") or "missing")
+        if mode not in CALENDAR_MODES:
+            self._send_json(400, {"error": f"calendar_mode must be one of {list(CALENDAR_MODES)}"})
+            return
+        gateway = build_calendar_gateway(mode, payload.get("fixture_city") or None)
+        self._send_json(
+            200,
+            process_turn(message, whatsapp_number, calendar=gateway),
+        )
 
     def _read_json(self) -> tuple[dict, str | None]:
         length = int(self.headers.get("Content-Length", "0"))
