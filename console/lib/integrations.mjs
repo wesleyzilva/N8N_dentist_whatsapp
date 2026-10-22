@@ -31,7 +31,7 @@ async function pythonService() {
     status: status.running ? "up" : "down",
     summary: status.running ? "Respondendo em /healthz" : `Fora do ar (${status.error || "sem resposta"})`,
     details,
-    howTo: ["Botão 'Iniciar serviço' no topo do Console", "ou: python intent_service.py (PORT=8001)"],
+    howTo: ["Botão 'Iniciar serviço' no topo do Console", "ou: python -m app.interfaces.http.intent_service (PORT=8001)"],
   };
 }
 

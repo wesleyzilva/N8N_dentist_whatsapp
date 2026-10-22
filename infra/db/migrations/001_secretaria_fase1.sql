@@ -5,8 +5,8 @@
 --   * agenda e presença da dra: a fonte é o Google Calendar (Fases 3 e 4)
 --   * opt-out, auditoria de decisão e handoff: Fases 5 e 6
 --
--- Aplicar (PowerShell, na pasta do projeto, com o compose atual rodando):
---   Get-Content db\migrations\001_secretaria_fase1.sql | docker compose exec -T postgres psql -U n8n -d postgres
+-- Aplicar (na raiz do repositório, com o compose rodando):
+--   docker compose exec -T postgres psql -U n8n -d postgres < infra/db/migrations/001_secretaria_fase1.sql
 --
 -- No n8n, crie a credencial Postgres com: host = postgres, porta 5432,
 -- database = secretaria, usuário/senha do seu compose.

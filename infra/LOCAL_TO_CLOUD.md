@@ -1,6 +1,6 @@
 # Local primeiro, pronto para a nuvem
 
-A stack é a mesma nos dois ambientes: **n8n + serviço Python (intent/turn) + Postgres**, definida em `docker-compose.cloud-ready.yml`. O que muda de local para nuvem é o `.env` e o que fica na frente (túnel ou proxy HTTPS), não o código nem os workflows.
+A stack é a mesma nos dois ambientes: **n8n + serviço Python (intent/turn) + Postgres**, definida em `infra/docker/compose.target.yml`. O que muda de local para nuvem é o `.env` e o que fica na frente (túnel ou proxy HTTPS), não o código nem os workflows.
 
 Regras que mantêm isso verdadeiro:
 
@@ -11,7 +11,7 @@ Regras que mantêm isso verdadeiro:
 
 ## Migrar do compose atual para este (uma vez)
 
-Rode os comandos na pasta do projeto, em PowerShell, **antes** de parar o compose atual.
+Rode os comandos na raiz do repositório, em PowerShell, **antes** de parar o compose atual.
 
 1. **Backup** (gera o arquivo dentro do container e copia, para evitar problema de codificação do PowerShell):
    ```powershell
@@ -35,12 +35,12 @@ Rode os comandos na pasta do projeto, em PowerShell, **antes** de parar o compos
 4. **Pare o compose antigo sem apagar dados** (não use `-v`) e suba o novo:
    ```powershell
    docker compose down
-   docker compose -f docker-compose.cloud-ready.yml up -d --build
+   docker compose -f infra/docker/compose.target.yml --env-file .env up -d --build
    ```
 5. **Atualize o workflow.** No nó HTTP, troque `http://host.docker.internal:8001/...` por `http://intent-service:8001/<mesmo caminho>` (hoje `/turn`).
 6. **Valide:** `curl http://127.0.0.1:8001/healthz`, um POST no webhook do n8n e `pytest`.
 
-Depois de validar, renomeie o antigo para `docker-compose.legacy.yml` e o novo para `docker-compose.yml`, para os comandos simples (`docker compose up`, `exec`) continuarem funcionando.
+Depois de validar, o novo compose substitui o `docker-compose.yml` da raiz (`git mv infra/docker/compose.target.yml docker-compose.yml`, ajustando `context`/`dockerfile`/volumes) e o antigo sai do repositório.
 
 ## Mapa: local agora, nuvem depois
 

@@ -57,15 +57,19 @@ The solution is organized into three main layers:
 
 ## Repository Structure
 
-- app/domains: domain-specific business logic
-- app/infrastructure: configuration and supporting infrastructure
-- app/interfaces: HTTP entry points and integrations
-- workflows: n8n workflow definitions
-- tests: pytest + `tests/scenarios/conversations.json` (suíte de conversas)
-- scripts: runner de cenários e helpers operacionais
-- console: TPM Console (Node, sem dependências)
-- legacy: código antigo mantido só para consulta/reuso (ver `legacy/README.md`)
-- docs: governança (`docs/governance/status.json` é o registro do TPM), arquivo morto em `docs/archive/`
+```
+app/         domínio (domains), infraestrutura (infrastructure) e entradas (interfaces: http, n8n)
+config/      clinic, guardrails, voz, sessão (fatos e regras, nunca no prompt)
+mcp/         contratos MCP
+workflows/   fluxos n8n (só orquestram)
+tests/       pytest + tests/scenarios/conversations.json (suíte de conversas)
+scripts/     runner de cenários
+console/     TPM Console (Node, sem dependências)
+infra/       Docker (infra/docker), banco (infra/db) e migração local → nuvem
+docs/        canonical/ (mapa), governance/ (status.json, RAID, gates, layout.json), sprints/
+```
+
+Índice completo e contrato da estrutura: [`docs/README.md`](docs/README.md) e `docs/governance/layout.json`.
 
 ## Prerequisites
 
@@ -94,7 +98,7 @@ The solution is organized into three main layers:
 
 4. Start the turn service (intent + grounding + voice). O TPM Console já faz isso; manualmente:
    ```bash
-   python intent_service.py
+   python -m app.interfaces.http.intent_service
    ```
 
    Local contract: `POST http://localhost:8001/turn` with `{"message": "...", "whatsapp_number": "5546..."}`.
@@ -106,10 +110,7 @@ The solution is organized into three main layers:
    npm run validate
    ```
 
-   On Windows PowerShell, you can also run:
-   ```powershell
-   .\scripts\validate_local_flow.ps1
-   ```
+   Conversas contra o serviço ou o n8n: `python -m scripts.run_scenarios --url <endpoint>` (ver `scripts/README.md`).
 
 ## Configuration
 

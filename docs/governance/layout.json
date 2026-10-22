@@ -1,0 +1,31 @@
+{
+  "description": "Contrato da estrutura canônica do repositório. Verificado por tests/test_project_structure.py e pelo check structure:hygiene do TPM Console. Mudou a estrutura? Mude aqui no mesmo commit.",
+  "root_allowed": [
+    ".cursor", ".vscode", ".dockerignore", ".env.example", ".gitignore",
+    "AGENTS.md", "ARCHITECTURE.md", "IMPLEMENTATION_PLAN.md", "README.md",
+    "app", "config", "console", "docker-compose.yml", "docs", "infra", "mcp",
+    "package.json", "pytest.ini", "requirements-dev.txt", "scripts", "tests", "workflows"
+  ],
+  "required": [
+    "app/domains/secretary/turn.py",
+    "app/interfaces/http/intent_service.py",
+    "app/interfaces/n8n/grounded_reply.py",
+    "app/infrastructure/mcp/calendar.py",
+    "config/clinic.json",
+    "config/guardrails.json",
+    "config/voice.json",
+    "config/session.json",
+    "docs/README.md",
+    "docs/canonical/CANONICAL_MAP.md",
+    "docs/governance/status.json",
+    "infra/README.md",
+    "infra/db/migrations",
+    "infra/docker/Dockerfile.intent",
+    "tests/scenarios/conversations.json",
+    "workflows/intent_workflow.json"
+  ],
+  "forbidden": [
+    "legacy", "docker", "certs", "docs/archive", "intent_service.py",
+    "scripts/config_loader.py", "scripts/classify_intent.py"
+  ]
+}

@@ -2,6 +2,7 @@
   "updated": "2026-10-22",
   "product": "Secretária WhatsApp — harmonização orofacial (Pato Branco 46 / São Carlos 16)",
   "current_phase": 1,
+  "current_step": "E3",
   "how_to_read": "Este arquivo é o registro do TPM (declarado). O TPM Console cruza cada item com evidência automática (pytest, cenários, probes). Se o declarado diz 'feito' e a evidência está vermelha, o Console mostra divergência.",
   "phases": [
     {
@@ -113,38 +114,126 @@
     "tests/test_secretary_voice.py": ["P1", "P2"],
     "tests/test_turn.py": ["P2", "P4", "P5", "P7"]
   },
+  "execution_steps": [
+    {
+      "id": "E0", "name": "Ambiente e dependências", "status": "done",
+      "goal": "Máquina do desenvolvedor pronta para rodar testes e o Console.",
+      "checks": ["env:vars", "structure:hygiene", "docs:canonical"],
+      "how": ["cp .env.example .env", "pip install -r requirements-dev.txt", "npm run validate"],
+      "manual": [
+        {"label": "Node 20+ e Python 3.10+ instalados", "done": true},
+        {"label": ".env criado a partir do .env.example (sem commitar)", "done": true}
+      ]
+    },
+    {
+      "id": "E1", "name": "Código e testes verdes", "status": "done",
+      "goal": "Regras de domínio, grounding e voz provadas sem Docker.",
+      "checks": ["pytest", "scenarios", "config:json", "mcp:schemas", "secrets:scan"],
+      "how": ["pytest", "python -m scripts.run_scenarios"],
+      "manual": [
+        {"label": "15 cenários anti-alucinação passam", "done": true}
+      ]
+    },
+    {
+      "id": "E2", "name": "Serviço Python e simulador", "status": "done",
+      "goal": "POST /turn no ar e simulável pelo Console (calendário vazio, erro ou fixture).",
+      "checks": ["integration:python-service"],
+      "how": ["npm run console  # botão Iniciar serviço", "python -m app.interfaces.http.intent_service"],
+      "manual": [
+        {"label": "POST /turn devolve o contrato canônico", "done": true},
+        {"label": "Simulador do Console cobre os três modos de calendário", "done": true}
+      ]
+    },
+    {
+      "id": "E3", "name": "Docker: stack local", "status": "next",
+      "goal": "postgres + n8n + serviço Python + Evolution API subindo com um comando, sem segredo no git.",
+      "checks": ["compose:valid", "integration:n8n", "integration:evolution-api"],
+      "how": ["docker compose up -d", "docker compose ps"],
+      "manual": [
+        {"label": "Decidir compose único: promover infra/docker/compose.target.yml a docker-compose.yml (A8)", "done": false},
+        {"label": ".env com EVOLUTION_API_KEY, POSTGRES_PASSWORD e N8N_ENCRYPTION_KEY novos (A3)", "done": false},
+        {"label": "Imagem do serviço Python (infra/docker/Dockerfile.intent) construída e healthz verde", "done": false},
+        {"label": "Containers saudáveis: docker compose ps", "done": false}
+      ]
+    },
+    {
+      "id": "E4", "name": "Banco de dados", "status": "planned",
+      "goal": "Banco secretaria com estado mínimo de conversa e deduplicação de webhook (sem agenda, que é do Google Calendar).",
+      "checks": [],
+      "how": ["docker compose exec -T postgres psql -U n8n -d postgres < infra/db/migrations/001_secretaria_fase1.sql"],
+      "manual": [
+        {"label": "Confirmar o modelo de dados mínimo (A9)", "done": false},
+        {"label": "Migração 001 aplicada e reaplicável sem erro", "done": false},
+        {"label": "Credencial Postgres criada no n8n (host postgres, database secretaria)", "done": false}
+      ]
+    },
+    {
+      "id": "E5", "name": "Workflow no n8n", "status": "planned",
+      "goal": "Webhook → POST /turn → reply_text, com os mesmos 15 cenários passando pelo n8n.",
+      "checks": ["workflows:audit", "integration:n8n-webhook"],
+      "how": ["n8n > Import from file > workflows/intent_workflow.json", "python -m scripts.run_scenarios --url http://localhost:5678/webhook/intent-webhook"],
+      "manual": [
+        {"label": "Workflow importado e ativo; URL do nó HTTP usa o nome do serviço (intent-service:8001)", "done": false},
+        {"label": "Cenários contra o n8n verdes e evidência no VALIDATION_LOG", "done": false},
+        {"label": "Decisão A2 sobre a lógica de reserva no canvas", "done": false}
+      ]
+    },
+    {
+      "id": "E6", "name": "WhatsApp (Evolution API)", "status": "planned",
+      "goal": "Mensagem real entra pelo Evolution, passa pelo n8n e volta como texto da secretária.",
+      "checks": ["integration:evolution-api"],
+      "how": ["Criar instância na Evolution API e ler o QR code", "Apontar o webhook da instância para o n8n"],
+      "manual": [
+        {"label": "Provedor definido (Evolution API ou Meta Cloud)", "done": false},
+        {"label": "Round-trip real validado com número de teste", "done": false}
+      ]
+    },
+    {
+      "id": "E7", "name": "Unidade e presença (Fase 2)", "status": "planned",
+      "goal": "Calendário por unidade e premissa da dona validada.",
+      "checks": ["scenarios:phase2"],
+      "how": ["Preencher calendar_id e endereço de cada unidade em config/clinic.json (A4)"],
+      "manual": [
+        {"label": "calendar_id distinto por unidade", "done": false},
+        {"label": "Dona confirma que a dra alterna entre as cidades no Google Calendar", "done": false}
+      ]
+    },
+    {
+      "id": "E8", "name": "Google Calendar (Fase 3)", "status": "planned",
+      "goal": "Disponibilidade e presença reais atrás do protocolo CalendarGateway.",
+      "checks": ["scenarios:phase3", "integration:google-calendar"],
+      "how": ["Implementar GoogleCalendarGateway (A5)"],
+      "manual": [
+        {"label": "OAuth autorizado e testado", "done": false},
+        {"label": "Calendário falhando continua degradando para pergunta ou espera", "done": false}
+      ]
+    }
+  ],
   "next_actions": [
     {"id": "A1", "priority": "alta", "problem": "P10", "phase": 1, "owner": "DevOps", "title": "Subir stack (docker compose up), importar workflows/intent_workflow.json e validar o webhook no Console (aba Integrações)"},
     {"id": "A2", "priority": "alta", "problem": "P6", "phase": 4, "owner": "Architect", "title": "Decidir: remover do canvas n8n a triagem/slots/reserva (Code node 'Triagem e Horários Próximos') e mover para app/ conforme regra n8n-workflows"},
-    {"id": "A3", "priority": "alta", "problem": "P9", "phase": 6, "owner": "Security", "title": "Rotacionar a chave da Evolution API que esteve no git e conferir o N8N_ENCRYPTION_KEY padrão do compose"},
+    {"id": "A3", "priority": "alta", "problem": "P9", "phase": 6, "owner": "Security", "title": "Rotacionar a chave da Evolution API que esteve no git e exigir N8N_ENCRYPTION_KEY no .env (hoje o compose tem valor padrão)"},
     {"id": "A4", "priority": "media", "problem": "P4", "phase": 2, "owner": "TPM", "title": "Obter calendar_id distinto por unidade (hoje Pato Branco e São Carlos usam o mesmo) e endereço real das unidades"},
-    {"id": "A5", "priority": "media", "problem": "P5", "phase": 3, "owner": "Dev", "title": "Implementar GoogleCalendarGateway real (freebusy) atrás do protocolo CalendarGateway; reaproveitar legacy/auth_e_agenda.py para OAuth"},
+    {"id": "A5", "priority": "media", "problem": "P5", "phase": 3, "owner": "Dev", "title": "Implementar GoogleCalendarGateway real (freebusy) atrás do protocolo CalendarGateway; o fluxo OAuth antigo está no git (commit a0048aa, legacy/auth_e_agenda.py)"},
     {"id": "A6", "priority": "media", "problem": "P8", "phase": 5, "owner": "Dev", "title": "Separar motivos de escalonamento (clinical, human_requested, complaint); hoje pedido de humana sai como 'clinical'"},
     {"id": "A7", "priority": "baixa", "problem": "P7", "phase": 5, "owner": "Dev", "title": "Palavra 'dor' casa por substring (ex.: 'adorei'); trocar por limite de palavra mantendo viés seguro"},
-    {"id": "A8", "priority": "baixa", "problem": "P1", "phase": 1, "owner": "Voice", "title": "Decidir destino do agente conversacional docker/n8n/calendar.json (Gemini + tools), que contradiz a arquitetura n8n→Python"}
+    {"id": "A8", "priority": "alta", "problem": "P10", "phase": 1, "owner": "DevOps", "title": "Unificar o compose: promover infra/docker/compose.target.yml (postgres com healthcheck, intent-service, n8n sem segredo fixo) e acrescentar a Evolution API"},
+    {"id": "A9", "priority": "media", "problem": "P9", "phase": 1, "owner": "Architect", "title": "Confirmar o modelo de dados: só conversation_state e processed_messages no banco secretaria; o schema 'clinica' (pacientes/agendamentos) foi removido por duplicar a agenda do Google Calendar"}
   ],
   "inventory": [
-    {"path": "app/", "kind": "canônico", "decision": "manter", "note": "Domínio, config, gateways e HTTP /turn. Fonte de regras."},
+    {"path": "app/", "kind": "canônico", "decision": "manter", "note": "Domínio, gateways de calendário, HTTP /turn e espelho do nó n8n (interfaces/n8n). Fonte de regras."},
     {"path": "config/", "kind": "canônico", "decision": "manter", "note": "clinic, guardrails, voice, session."},
     {"path": "tests/", "kind": "canônico", "decision": "manter", "note": "pytest + tests/scenarios/conversations.json (suíte de conversas)."},
     {"path": "scripts/run_scenarios.py", "kind": "canônico", "decision": "manter", "note": "Executa a suíte em processo ou contra HTTP (/simulate/turn, n8n)."},
-    {"path": "scripts/n8n_grounded_reply.py", "kind": "canônico", "decision": "manter", "note": "Espelho do nó Grounded Reply."},
     {"path": "console/", "kind": "canônico", "decision": "manter", "note": "TPM Console local (Node, sem dependências)."},
-    {"path": "workflows/intent_workflow.json", "kind": "orquestração", "decision": "migrar", "note": "Webhook→/turn ok; Code node com regras de negócio e reserva viola a regra do n8n."},
-    {"path": "workflows/intent_workflow_simple.json", "kind": "orquestração", "decision": "manter", "note": "Smoke test do contrato."},
-    {"path": "workflows/intent_workflow.bak.json", "kind": "orquestração", "decision": "arquivar", "note": "Backup do fluxo anterior (usa /classify)."},
-    {"path": "docker-compose.yml", "kind": "infra", "decision": "manter", "note": "postgres + n8n + Evolution API. Corrigido: serviço evolution-api indentado e chave via .env."},
-    {"path": "docker/sql/", "kind": "infra", "decision": "manter", "note": "Compose cloud-ready, SQL de schema e Dockerfile.intent. Ver docker/sql/docs/LOCAL_TO_CLOUD.md."},
-    {"path": "docker/n8n/calendar.json", "kind": "experimento", "decision": "decidir", "note": "Agente Gemini com tools no n8n; fora do desenho atual (A8)."},
     {"path": "mcp/", "kind": "canônico", "decision": "manter", "note": "Contratos para Cursor e runtime."},
-    {"path": "intent_service.py", "kind": "atalho", "decision": "manter", "note": "Atalho para o serviço canônico (README e Dockerfile usam este caminho)."},
-    {"path": "legacy/intent_service_legacy.py", "kind": "legado", "decision": "arquivar", "note": "Serviço antigo: agenda sintética e can_assert_facts sempre true. Não usar."},
-    {"path": "legacy/intent_classifier.py", "kind": "legado", "decision": "avaliar reuso", "note": "Classificador híbrido regras+LLM com testes (37). Intents HOURS/CITY divergem do contrato (AVAILABILITY/LOCATION)."},
-    {"path": "legacy/auth_e_agenda.py", "kind": "legado", "decision": "reusar na Fase 3", "note": "Fluxo OAuth local do Google Calendar."},
-    {"path": "legacy/testar_secretaria_ia.py", "kind": "legado", "decision": "substituído", "note": "Smoke de 3 turnos no webhook; o Console cobre."},
-    {"path": "legacy/simular_conversas.ps1", "kind": "legado", "decision": "substituído", "note": "Simulador PowerShell com caminhos fixos; o Console cobre."},
-    {"path": "legacy/integrations_status.py", "kind": "legado", "decision": "substituído", "note": "Flags de integração; o Console cobre."},
-    {"path": "legacy/backup_XNTM.n8n-workflow.json", "kind": "legado", "decision": "arquivar", "note": "Export do workflow n8n (ID XNTM...)."},
-    {"path": "docs/archive/", "kind": "arquivo", "decision": "não usar", "note": "VIPpocket, plano mestre antigo. Fora do MVP."}
+    {"path": "workflows/intent_workflow.json", "kind": "orquestração", "decision": "migrar", "note": "Webhook→/turn ok; Code node com regras de negócio e reserva viola a regra do n8n (A2)."},
+    {"path": "docker-compose.yml", "kind": "infra", "decision": "substituir", "note": "postgres + n8n + Evolution API. Funciona, mas tem senha e chave padrão; será substituído pelo compose alvo (A8)."},
+    {"path": "infra/docker/compose.target.yml", "kind": "infra", "decision": "promover", "note": "Compose alvo (postgres, intent-service, n8n) sem segredo fixo. Falta a Evolution API."},
+    {"path": "infra/docker/Dockerfile.intent", "kind": "infra", "decision": "manter", "note": "Imagem do serviço Python (python -m app.interfaces.http.intent_service)."},
+    {"path": "infra/db/migrations/", "kind": "infra", "decision": "manter", "note": "Banco secretaria: conversation_state e processed_messages."},
+    {"path": "infra/LOCAL_TO_CLOUD.md", "kind": "infra", "decision": "manter", "note": "Passo a passo de migração e checklist de nuvem."},
+    {"path": "docs/", "kind": "canônico", "decision": "manter", "note": "canonical/ (mapa), governance/ (status, RAID, RACI, gates, layout), sprints/. Índice em docs/README.md."},
+    {"path": "removidos (commit a0048aa)", "kind": "arquivo", "decision": "removido", "note": "legacy/, docs/archive/ (VIPpocket), docker/n8n/calendar.json (agente Gemini), schema clinica, certs/, boilerplate de template. Recuperáveis pelo git."}
   ]
 }

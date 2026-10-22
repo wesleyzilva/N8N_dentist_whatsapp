@@ -16,7 +16,7 @@ Primeira vez: `pip install -r requirements-dev.txt`.
 
 | Aba | Para que serve |
 |---|---|
-| Painel do TPM | Fases 0–6 com gate, P1–P10 (declarado × código verificado × ambiente), pontos de atenção, backlog, RAID, inventário do que já temos, histórico de validações |
+| Painel do TPM | Passo a passo da execução (E0–E8), fases 0–6 com gate, P1–P10 (declarado × código verificado × ambiente), pontos de atenção, backlog, RAID, inventário do que já temos, histórico de validações |
 | Simulador de conversa | Chat estilo WhatsApp. Escolha o número (DDD 46/16/outro), o calendário (vazio, erro, fixture) e o alvo (Python direto ou webhook n8n). Clique numa resposta para ver o contrato: intent, unidade, evidências, claims, escalonamento, tool_status. O lint avisa se houver horário ou cidade da dra sem evidência. "Copiar como cenário" gera JSON para a suíte |
 | Cenários de teste | Suíte de conversas (`tests/scenarios/conversations.json`): em processo, contra o serviço HTTP ou contra o n8n. "Reproduzir no simulador" repete o diálogo |
 | Validações | pytest, cenários, configuração, MCP, workflows n8n (auditoria estática), Docker Compose, segredos, `.env`, higiene, governança, integrações |
@@ -25,7 +25,7 @@ Primeira vez: `pip install -r requirements-dev.txt`.
 
 ## Onde o TPM edita
 
-- `docs/governance/status.json`: fases, status declarado, passos manuais, backlog (A*), inventário. O Console cruza com a evidência; divergências aparecem em vermelho.
+- `docs/governance/status.json`: passos de execução (`execution_steps`, passo atual em `current_step`), fases, status declarado, passos manuais, backlog (A*), inventário. O Console cruza com a evidência; divergências aparecem em vermelho.
 - `docs/governance/RAID.md`: tabela lida pelo Painel.
 - `tests/scenarios/conversations.json`: novos casos de conversa (rodam no pytest e no Console).
 

@@ -1,4 +1,4 @@
-# Serviço de intenção/turno da secretária (intent_service.py)
+# Serviço de intenção/turno da secretária (app.interfaces.http.intent_service)
 # Sem segredos na imagem: toda configuração entra por variável de ambiente.
 ARG PYTHON_VERSION=3.14
 FROM python:${PYTHON_VERSION}-slim
@@ -16,4 +16,4 @@ RUN if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.
 
 USER appuser
 EXPOSE 8001
-CMD ["python", "intent_service.py"]
+CMD ["python", "-m", "app.interfaces.http.intent_service"]
