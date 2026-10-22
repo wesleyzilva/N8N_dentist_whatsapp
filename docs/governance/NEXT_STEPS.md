@@ -8,10 +8,10 @@ Fonte viva: `docs/governance/status.json` (`execution_steps` E0–E8 e backlog A
 - Grounding corrigido: calendário padrão vazio; ferramenta com erro degrada para pergunta ou espera.
 
 ## Agora: E3 Docker (stack local)
-1. A8: promover `infra/docker/compose.target.yml` a `docker-compose.yml` e acrescentar a Evolution API.
-2. A3: gerar `EVOLUTION_API_KEY`, `POSTGRES_PASSWORD` e `N8N_ENCRYPTION_KEY` novos no `.env`.
+1. A8: promover `infra/docker/compose.target.yml` a `docker-compose.yml` (WhatsApp é a Meta Cloud API, sem container).
+2. A3: gerar `POSTGRES_PASSWORD` e `N8N_ENCRYPTION_KEY` novos no `.env`.
 3. Construir a imagem do serviço Python e subir: `docker compose up -d --build`.
-4. Painel > Integrações: n8n e Evolution verdes.
+4. Painel > Integrações: n8n verde e WhatsApp Meta (verify GET) verde.
 
 ## Em seguida
 - E4 banco (A9, migração 001, credencial no n8n) → E5 workflow no n8n e cenários contra ele → E6 WhatsApp real.

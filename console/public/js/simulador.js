@@ -96,6 +96,9 @@ function inspector(message) {
     inspectorRow("6 · escalation", data.escalation?.needed ? `SIM — ${data.escalation.reason}` : "não"),
     inspectorRow("ferramenta de calendário", tools.calendar_mode ? `modo ${tools.calendar_mode} · freebusy ${tools.freebusy} · presença ${tools.presence}` : "não informado"),
     inspectorRow("sessão (memória curta)", data.session ? `${data.session.brief || "—"}${data.session.pending ? ` · pendente ${data.session.pending}` : ""}` : "—"),
+    inspectorRow("fallback (fora do mapa)", data.fallback ? `${data.fallback.state}${data.fallback.reason ? ` · motivo ${data.fallback.reason}` : ""}` : "não acionado"),
+    data.handoff ? inspectorRow("handoff para a equipe/n8n", `${data.handoff.mode} · ${data.handoff.reason || ""}${data.handoff.message ? ` · mensagem: ${data.handoff.message}` : ""}${data.handoff.media_type ? ` · mídia: ${data.handoff.media_type}` : ""}`) : null,
+    h("div", { class: "extra" }, h("strong", {}, "Rastro de decisões"), h("ol", { class: "trace" }, (data.trace || []).map((t) => h("li", {}, h("strong", {}, `${t.step}: `), `${t.result} `, h("span", { class: "muted" }, `— ${t.why}`))))),
     inspectorRow("lint de grounding", h("div", { class: "chips" }, lintResponse(data).map((n) => colorPill(n.level === "ok" ? "green" : n.level === "bad" ? "red" : "yellow", n.text)))),
     h("details", {}, h("summary", { class: "tiny muted" }, "JSON bruto"), h("pre", { class: "json" }, JSON.stringify(resp.response ?? resp, null, 2))),
   );

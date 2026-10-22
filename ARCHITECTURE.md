@@ -45,6 +45,8 @@ WhatsApp ──► n8n Orchestrator
 - `app/domains/` — intenção, unidade, grounding
 - `app/infrastructure/` — loaders e clientes MCP
 - `app/interfaces/http/` — contrato para o n8n
+- `app/interfaces/meta/` — adaptador da WhatsApp Cloud API (Meta): parse do webhook, assinatura, dedup, `send_payload`
+- `app/infrastructure/observability/` — log por turno (terminal + JSONL) com `trace`
 - `config/` — guardrails e clínicas (sem hardcode)
 - `mcp/schemas/` — contratos para Cursor e runtime
 - `workflows/` — n8n, sem regras de unidade/agenda
@@ -58,6 +60,22 @@ WhatsApp ──► n8n Orchestrator
 5. Grounding: lista de claims permitidos
 6. Voz humanizada só com claims permitidos
 7. Se confiança baixa, ferramenta falhou ou pedido clínico → escalar
+
+## Canal: WhatsApp Cloud API (Meta)
+
+```
+Meta ──webhook──► n8n (Webhook, Raw Body) ──► POST /meta/webhook (Python)
+                                                  │  valida X-Hub-Signature-256, deduplica wamid,
+                                                  │  roda process_turn por mensagem
+n8n ◄── replies[].send_payload ◄──────────────────┘
+n8n ──► POST graph.facebook.com/v{ver}/{phone_number_id}/messages (Bearer META_ACCESS_TOKEN)
+```
+
+- `GET /meta/webhook` responde o desafio de verificação (`META_VERIFY_TOKEN`).
+- n8n só orquestra e envia; a decisão fica no serviço Python. `handoff` diz à equipe o que fazer (`offer`, `check_dra`, `leave_message`, `escalate`).
+- Fora do mapeado: a secretária pede desculpa e oferece verificar se a dra. atende pelo WhatsApp ou guardar o recado (sem prometer horário de retorno).
+- Fora da janela de 24h a Meta exige template aprovado; não coberto no MVP.
+- Estado de sessão, opt-out e dedup estão em memória até a etapa E4 (banco).
 
 ## Segurança
 

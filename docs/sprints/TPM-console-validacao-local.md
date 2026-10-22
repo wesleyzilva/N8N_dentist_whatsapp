@@ -18,7 +18,7 @@
 
 ## Dependências
 - [x] Node 20+ e Python 3.10+ (pytest e pyyaml via `requirements-dev.txt`)
-- [ ] Docker/n8n/Evolution para validar integrações reais (probes prontos; stack não sobe neste ambiente de CI)
+- [ ] Docker/n8n/Meta Cloud para validar integrações reais (probes prontos; stack não sobe neste ambiente de CI)
 
 ## Responsável
 - Dev: Console, runner de cenários, correção do gateway

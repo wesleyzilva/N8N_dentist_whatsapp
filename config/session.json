@@ -31,5 +31,61 @@
     "nao quero receber",
     "não quero receber",
     "opt out"
-  ]
+  ],
+  "fallback_choice": {
+    "check_dra": [
+      "verificar",
+      "verifica",
+      "ver se",
+      "falar com ela",
+      "falar agora",
+      "chama ela",
+      "chamar ela",
+      "pode chamar",
+      "agora",
+      "atender agora",
+      "atende agora",
+      "pode ser agora",
+      "urgente"
+    ],
+    "leave_message": [
+      "recado",
+      "deixar",
+      "deixo",
+      "deixa",
+      "retorna",
+      "retornar",
+      "me liga",
+      "me ligar",
+      "depois",
+      "mais tarde",
+      "anota",
+      "anotar",
+      "por mensagem",
+      "por escrito"
+    ],
+    "affirmatives": [
+      "sim",
+      "pode",
+      "pode sim",
+      "claro",
+      "por favor",
+      "isso",
+      "quero",
+      "pode ser",
+      "uhum",
+      "aham"
+    ],
+    "dismiss": [
+      "nao precisa",
+      "deixa pra la",
+      "deixa para la",
+      "esquece",
+      "nao quero",
+      "nao obrigad",
+      "tudo bem nao",
+      "nao precisa mais",
+      "dispenso"
+    ]
+  }
 }

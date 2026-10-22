@@ -4,10 +4,11 @@ import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { CHECKS, runChecks } from "./lib/checks.mjs";
-import { geminiPing, N8N_URL, N8N_WEBHOOK_PATH, probeAll } from "./lib/integrations.mjs";
+import { geminiPing, metaPing, N8N_URL, N8N_WEBHOOK_PATH, probeAll } from "./lib/integrations.mjs";
 import { httpProbe } from "./lib/probes.mjs";
 import { findPython, readJson, runPython } from "./lib/repo.mjs";
 import { SERVICE_URL, serviceStatus, startService, stopService } from "./lib/service.mjs";
+import { clearTurnLog, readTurnLog } from "./lib/turnlog.mjs";
 import { buildOverview, listDocs, loadLastRun, readDoc, saveRun } from "./lib/status.mjs";
 
 const PUBLIC_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "public");
@@ -98,6 +99,7 @@ async function resetSession(body) {
 
 async function runScenarios(body) {
   const args = ["-m", "scripts.run_scenarios", "--json"];
+  if (["corpus", "all"].includes(body.suite)) args.push("--suite", body.suite);
   if (body.target === "service") args.push("--url", `${SERVICE_URL}/simulate/turn`);
   if (body.target === "n8n") args.push("--url", `${N8N_URL}${N8N_WEBHOOK_PATH}`);
   if (Array.isArray(body.only) && body.only.length) args.push("--only", ...body.only.map(String));
@@ -130,6 +132,8 @@ async function handleApi(req, res, url) {
       return sendJson(res, 200, await probeAll());
     case "POST /api/integrations/gemini-ping":
       return sendJson(res, 200, await geminiPing());
+    case "POST /api/integrations/meta-ping":
+      return sendJson(res, 200, await metaPing());
     case "GET /api/service":
       return sendJson(res, 200, await serviceStatus());
     case "POST /api/service/start":
@@ -144,8 +148,19 @@ async function handleApi(req, res, url) {
       const result = await resetSession(body);
       return sendJson(res, result.status, result.body);
     }
-    case "GET /api/scenarios":
-      return sendJson(res, 200, readJson("tests", "scenarios", "conversations.json"));
+    case "GET /api/scenarios": {
+      const suite = url.searchParams.get("suite") || "conversations";
+      const result = await serialized(() => runPython(["-m", "scripts.run_scenarios", "--list", "--suite", suite], { timeout: 30_000 }));
+      try {
+        return sendJson(res, 200, JSON.parse(result.stdout));
+      } catch {
+        return sendJson(res, 500, { error: "Não foi possível listar os cenários", detail: (result.stdout + result.stderr).slice(-400) });
+      }
+    }
+    case "GET /api/logs":
+      return sendJson(res, 200, readTurnLog(Number(url.searchParams.get("limit")) || 100));
+    case "POST /api/logs/clear":
+      return sendJson(res, 200, clearTurnLog());
     case "POST /api/scenarios/run": {
       const result = await serialized(() => runScenarios(body));
       return sendJson(res, result.status, result.body);

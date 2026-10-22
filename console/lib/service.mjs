@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import path from "node:path";
 import { ROOT, findPython } from "./repo.mjs";
 import { httpProbe } from "./probes.mjs";
 
@@ -43,6 +44,8 @@ export async function startService() {
       PORT: String(SERVICE_PORT),
       HOST: "127.0.0.1",
       SIMULATION_ENABLED: "1",
+      TURN_LOG_PATH: path.join(ROOT, "logs", "turns.jsonl"),
+      LOG_MESSAGE_TEXT: "1",
       PYTHONUNBUFFERED: "1",
       PYTHONDONTWRITEBYTECODE: "1",
       PYTHONIOENCODING: "utf-8",
